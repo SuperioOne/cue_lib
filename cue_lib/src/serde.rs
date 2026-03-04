@@ -7,7 +7,7 @@ use crate::{
     track::{DataType, IndexNo, Track, TrackIndex, TrackNo},
   },
   discid::{ean::Ean13, isrc::Isrc, upc::UpcA},
-  metadata::{VorbisComment, VorbisTagName},
+  metadata::{MetadataMap, VorbisComment, VorbisTagName},
 };
 use alloc::borrow::Cow;
 use serde::{Serialize, ser::SerializeStruct};
@@ -162,6 +162,21 @@ impl<'a> Serialize for AlbumFile<'a> {
     let mut obj = serializer.serialize_struct("AlbumFile", 2)?;
     obj.serialize_field("file_type", &self.file_type)?;
     obj.serialize_field("name", &self.name)?;
+    obj.end()
+  }
+}
+
+impl<'a> Serialize for MetadataMap<'a> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: serde::Serializer,
+  {
+    let mut obj = serializer.serialize_struct("MetadataMap", self.len())?;
+
+    for (key, values) in self.iter() {
+      obj.serialize_field(key.as_str(), &values)?;
+    }
+
     obj.end()
   }
 }

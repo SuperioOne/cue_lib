@@ -17,4 +17,6 @@ metadata = []
 serde = ["alloc", "dep:serde"]
 
 [dependencies]
-serde = { version = "1", default-features = false, optional = true }
+serde = { version = "1", default-features = true, optional = true, features = [
+        "derive",
+] }

@@ -40,6 +40,16 @@ macro_rules! define_bitflag {
       }
 
       #[inline]
+      pub const fn set_assign(&mut self, value: Self) {
+        self.0  |= value.0;
+      }
+
+      #[inline]
+      pub const fn unset_assign(&mut self, value: Self)  {
+        self.0 &= !value.0
+      }
+
+      #[inline]
       pub const fn len(&self) -> u32 {
         self.0.count_ones()
       }

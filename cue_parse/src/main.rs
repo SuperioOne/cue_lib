@@ -8,6 +8,7 @@ use std::{io::Read as _, path::Path, process::ExitCode};
 pub mod args;
 pub mod cli_error;
 pub mod command;
+pub mod output_writer;
 
 #[inline]
 fn read_cuesheet<T>(path: Option<T>) -> Result<String, std::io::Error>
@@ -62,7 +63,7 @@ fn main() -> ExitCode {
       pretty_print,
     } => {
       let cmd = ConvertCommand::new(cuesheet.as_str())
-        .set_metadata_remarks(metadata)
+        .set_vorbis_remarks(metadata)
         .set_output_file(output_file)
         .set_pretty_print(pretty_print);
 
