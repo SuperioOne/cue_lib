@@ -12,11 +12,11 @@ version.workspace = true
 
 [features]
 default = []
-alloc = []
+alloc = ["serde?/alloc"]
 metadata = []
-serde = ["alloc", "dep:serde"]
+serde = ["dep:serde"]
 
 [dependencies]
-serde = { version = "1", default-features = true, optional = true, features = [
+serde = { version = "1", default-features = false, optional = true, features = [
         "derive",
 ] }

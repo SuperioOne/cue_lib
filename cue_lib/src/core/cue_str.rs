@@ -126,13 +126,20 @@ impl<'a> TryFrom<&'a str> for CueStr<'a> {
   }
 }
 
+/// Strips first and last characters
+macro_rules! inner_text {
+  ($input:expr) => {
+    &$input[1..($input.len() - 1)]
+  };
+}
+
 impl core::fmt::Display for CueStr<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     match self {
-      Self::QuotedText(quoted_text) => f.write_str(&quoted_text[1..(quoted_text.len() - 1)]),
+      Self::QuotedText(quoted_text) => f.write_str(inner_text!(quoted_text)),
       Self::Text(text) => f.write_str(text),
       Self::QuotedTextWithEscape(quoted_text) => {
-        let text = &quoted_text[1..(quoted_text.len() - 1)];
+        let text = inner_text!(quoted_text);
         let mut slice_start = 0;
         let mut iter = text.chars().enumerate();
 

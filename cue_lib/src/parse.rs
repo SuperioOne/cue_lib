@@ -112,7 +112,7 @@ impl CueSheetParser {
       if self.flags.has(ParseOptionFlag::ALLOW_VORBIS_REMARKS) {
         cuesheet.remark_metadata = crate::metadata::MetadataMap::from_iter(probe.vorbis_comments());
       }
-    }
+    };
 
     self.process_tracks(cuesheet, probe.tracks())
   }

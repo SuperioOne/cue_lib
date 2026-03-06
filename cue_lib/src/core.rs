@@ -6,3 +6,6 @@ pub mod error;
 pub mod flags;
 pub mod timestamp;
 pub mod track;
+
+#[cfg(feature = "serde")]
+mod serde;

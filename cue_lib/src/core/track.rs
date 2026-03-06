@@ -17,8 +17,10 @@ impl_enum_str!(
     /// CD-ROM XA Mode2 Data
     (Mode2_2352, "MODE2/2352"),
     /// CD-I Mode2 Data
+    #[allow(nonstandard_style)]
     (CDI_2336, "CDI/2336"),
     /// CD-I Mode2 Data
+    #[allow(nonstandard_style)]
     (CDI_2352, "CDI/2352")
   ]
 );
@@ -32,12 +34,14 @@ pub struct IndexNo(u8);
 impl_numeric_range_type!(IndexNo, u8, max = 255, len = 3, display_leading_zeros = 2);
 impl_numeric_range_type!(TrackNo, u8, max = 255, len = 3, display_leading_zeros = 2);
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct TrackIndex {
   pub index_no: IndexNo,
   pub timestamp: CueTimeStamp,
 }
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct Track {
   pub track_no: TrackNo,

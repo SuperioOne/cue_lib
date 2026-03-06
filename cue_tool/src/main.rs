@@ -1,7 +1,7 @@
 use self::{
   args::Args,
   cli_error::cli_stderr,
-  command::{Command, convert::ConvertCommand, verify::CommandVerify},
+  command::{Command, convert::CmdConvert, query::CmdQuery, verify::CmdVerify},
 };
 use std::{io::Read as _, path::Path, process::ExitCode};
 
@@ -54,7 +54,7 @@ fn main() -> ExitCode {
 
   match args.command {
     args::Commands::Verify => {
-      let cmd = CommandVerify::new(cuesheet.as_str());
+      let cmd = CmdVerify::new(cuesheet.as_str());
       run!(cmd)
     }
     args::Commands::ConvertJson {
@@ -62,15 +62,24 @@ fn main() -> ExitCode {
       metadata,
       pretty_print,
     } => {
-      let cmd = ConvertCommand::new(cuesheet.as_str())
+      let cmd = CmdConvert::new(cuesheet.as_str())
         .set_vorbis_remarks(metadata)
         .set_output_file(output_file)
         .set_pretty_print(pretty_print);
 
       run!(cmd)
     }
-    args::Commands::Query { input } => {
-      todo!()
+    args::Commands::Query { input, metadata } => {
+      if let Some(query) = input.to_str() {
+        let cmd = CmdQuery::new(cuesheet.as_str(), query).set_vorbis_remarks(metadata);
+        run!(cmd)
+      } else {
+        cli_stderr!(
+          message = "query string is not a valid UTF-8 string",
+          verbosity = verbosity
+        );
+        ExitCode::FAILURE
+      }
     }
   }
 }

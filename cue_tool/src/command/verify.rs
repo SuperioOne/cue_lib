@@ -1,18 +1,18 @@
 use super::Command;
 use cue_lib::probe::CueSheetProbe;
 
-pub struct CommandVerify<'a> {
+pub struct CmdVerify<'a> {
   cuesheet: &'a str,
 }
 
-impl<'a> CommandVerify<'a> {
+impl<'a> CmdVerify<'a> {
   #[inline]
   pub const fn new(cuesheet: &'a str) -> Self {
     Self { cuesheet }
   }
 }
 
-impl<'a> Command for &'a CommandVerify<'a> {
+impl<'a> Command for &'a CmdVerify<'a> {
   type Error = cue_lib::error::CueLibError;
 
   #[inline]

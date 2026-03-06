@@ -13,6 +13,7 @@ macro_rules! define_bitflag {
       }
     }
 
+    #[allow(dead_code)]
     impl $name {
       $(
         $(#[$docs])*

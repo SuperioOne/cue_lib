@@ -106,7 +106,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cue_parse"
+name = "cue_tool"
 version = "0.1.0"
 dependencies = [
  "clap",

@@ -9,9 +9,6 @@ pub mod parse;
 #[cfg(feature = "metadata")]
 pub mod metadata;
 
-#[cfg(feature = "serde")]
-mod serde;
-
 mod internal;
 
 pub mod core;

@@ -1,6 +1,7 @@
 use crate::cli_error::ErrorFormat;
 
 pub mod convert;
+pub mod query;
 pub mod verify;
 
 pub trait Command

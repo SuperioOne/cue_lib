@@ -30,6 +30,9 @@ pub enum Commands {
   },
   Query {
     input: OsString,
+    /// Enables Vorbis metadata comments from remarks
+    #[arg(short, long)]
+    metadata: bool,
   },
 }
 

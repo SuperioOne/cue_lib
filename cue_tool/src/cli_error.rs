@@ -197,6 +197,13 @@ macro_rules! cli_stderr {
     let error = $crate::cli_error::CliError::new_with_verbose($error, $input, $verbosity);
     eprintln!("{}", error);
   }};
+
+  (message = $error:expr, verbosity = $verbosity:expr) => {{
+    match $verbosity {
+      $crate::args::VerboseLevel::Quiet => {}
+      _ => eprintln!("{}", $error),
+    }
+  }};
 }
 
 pub(crate) use cli_stderr;

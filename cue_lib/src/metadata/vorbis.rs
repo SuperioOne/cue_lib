@@ -5,6 +5,7 @@ use crate::{
 };
 use core::{cmp::Ordering, str::FromStr as _};
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct VorbisComment<'a> {
   pub tag: VorbisTagName,
   pub value: CueStr<'a>,

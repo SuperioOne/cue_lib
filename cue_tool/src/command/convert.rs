@@ -7,14 +7,14 @@ use std::{
   path::PathBuf,
 };
 
-pub struct ConvertCommand<'a> {
+pub struct CmdConvert<'a> {
   cuesheet: &'a str,
   vorbis_remarks: bool,
   output_file: Option<PathBuf>,
   pretty_print: bool,
 }
 
-impl<'a> ConvertCommand<'a> {
+impl<'a> CmdConvert<'a> {
   #[inline]
   pub const fn new(cuesheet: &'a str) -> Self {
     Self {
@@ -44,7 +44,7 @@ impl<'a> ConvertCommand<'a> {
   }
 }
 
-impl<'a> Command for &'a ConvertCommand<'a> {
+impl<'a> Command for &'a CmdConvert<'a> {
   type Error = ConvertError;
 
   fn run(self) -> Result<(), ConvertError> {

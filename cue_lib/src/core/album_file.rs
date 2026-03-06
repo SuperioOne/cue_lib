@@ -24,6 +24,7 @@ impl_enum_str!(
   ]
 );
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct AlbumFile<'a> {
   pub file_type: KnownFileType,
