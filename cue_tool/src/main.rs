@@ -1,7 +1,7 @@
 use self::{
   args::Args,
   cli_error::cli_stderr,
-  command::{Command, convert::CmdConvert, query::CmdQuery, verify::CmdVerify},
+  command::{Command, convert::CmdConvert, query::CmdQuery, split::CmdSplit, verify::CmdVerify},
 };
 use std::{io::Read as _, path::Path, process::ExitCode};
 
@@ -80,6 +80,18 @@ fn main() -> ExitCode {
         );
         ExitCode::FAILURE
       }
+    }
+    args::Commands::Split {
+      input_path,
+      output_dir,
+      metadata,
+    } => {
+      let cmd = CmdSplit::new(cuesheet.as_str())
+        .set_vorbis_remarks(metadata)
+        .set_input_path(input_path)
+        .set_output_dir(output_dir);
+
+      run!(cmd)
     }
   }
 }

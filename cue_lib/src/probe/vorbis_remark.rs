@@ -1,17 +1,18 @@
 use super::remark::RemarkIter;
-use crate::metadata::VorbisComment;
+use crate::core::cue_str::CueStr;
+use crate::metadata::vorbis::{VorbisComment, VorbisTag};
 
 pub struct VorbisRemarkIter<'a> {
   inner: RemarkIter<'a>,
 }
 
 impl<'a> Iterator for VorbisRemarkIter<'a> {
-  type Item = VorbisComment<'a>;
+  type Item = (VorbisTag, CueStr<'a>);
 
   fn next(&mut self) -> Option<Self::Item> {
     while let Some(remark) = self.inner.next() {
       match VorbisComment::try_from_line(remark) {
-        Ok(vorbis_comment) => return Some(vorbis_comment),
+        Ok(VorbisComment { tag, value }) => return Some((tag, value)),
         Err(_) => continue,
       }
     }

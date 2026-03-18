@@ -64,9 +64,9 @@ fn eq_escaped_quoted_str() {
 
 #[test]
 fn not_eq_str() {
-  let cuestr = CueStr::from_raw_str("NeverGonnaGiveYouDownnnn");
+  let cuestr = CueStr::from_raw_str("NeverGonnaGiveYouUP");
   assert!(cuestr.is_ok());
-  assert_ne!(cuestr.unwrap(), "NeverGonnaGiveYouDown");
+  assert_ne!(cuestr.unwrap(), "NeverGonnaGiveYou");
 }
 
 #[test]
@@ -81,6 +81,24 @@ fn not_eq_escaped_quoted_str() {
   let cuestr = CueStr::from_raw_str("\"Never gonna \\\\run\\\\ \\\"around\\\" and desert you\"");
   assert!(cuestr.is_ok());
   assert_ne!(cuestr.unwrap(), "Never gonna \\run\\ around and desert you");
+}
+
+#[test]
+fn as_cow_escaped() {
+  let cuestr = CueStr::from_raw_str("\"Never gonna \\\\make\\\\ \\\"you\\\" cry\"");
+  assert!(cuestr.is_ok());
+  assert_eq!(
+    cuestr.unwrap().as_cow_str(),
+    "Never gonna \\make\\ \"you\" cry"
+  );
+}
+
+#[test]
+fn as_cow_quoted() {
+  let cuestr = CueStr::from_raw_str("\"Never gonna say goodbye\"");
+
+  assert!(cuestr.is_ok());
+  assert_eq!(cuestr.unwrap().as_cow_str(), "Never gonna say goodbye");
 }
 
 test_cue_str!(empty, "", expects = "");

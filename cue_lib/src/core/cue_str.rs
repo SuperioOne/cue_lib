@@ -1,4 +1,5 @@
 use crate::core::error::{CueStrError, CueStrErrorKind};
+use core::ffi::CStr;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum CueStr<'a> {
@@ -7,18 +8,25 @@ pub enum CueStr<'a> {
   Text(&'a str),
 }
 
+/// Strips first and last characters
+macro_rules! inner_text {
+  ($input:expr) => {
+    &$input[1..($input.len() - 1)]
+  };
+}
+
 impl<'a> CueStr<'a> {
   pub fn from_raw_str(s: &'a str) -> Result<Self, CueStrError> {
     if s.len() > 1 && s.starts_with('"') {
       if s.ends_with('"') && !s.ends_with("\\\"") {
-        let text = &s[1..(s.len() - 1)];
+        let text = inner_text!(s);
         let mut needs_escape = false;
         let mut sequence_iter = text.chars().peekable();
 
         while let Some(ch) = sequence_iter.next() {
           match ch {
             '"' => {
-              return Err(CueStrError::new(CueStrErrorKind::UnescapedSpecialChar));
+              return Err(CueStrErrorKind::UnescapedSpecialChar.into());
             }
             '\\' => match sequence_iter.peek() {
               Some('\\' | '"') => {
@@ -26,7 +34,7 @@ impl<'a> CueStr<'a> {
                 _ = sequence_iter.next();
               }
               _ => {
-                return Err(CueStrError::new(CueStrErrorKind::UnescapedSpecialChar));
+                return Err(CueStrErrorKind::UnescapedSpecialChar.into());
               }
             },
             _ => continue,
@@ -41,10 +49,10 @@ impl<'a> CueStr<'a> {
 
         Ok(cue_str)
       } else {
-        Err(CueStrError::new(CueStrErrorKind::MissingEndingQuote))
+        Err(CueStrErrorKind::MissingEndingQuote.into())
       }
     } else if s.contains(|v: char| v.is_whitespace()) {
-      Err(CueStrError::new(CueStrErrorKind::MissingQuotes))
+      Err(CueStrErrorKind::MissingQuotes.into())
     } else {
       Ok(Self::Text(s))
     }
@@ -67,7 +75,7 @@ impl PartialEq<str> for CueStr<'_> {
       CueStr::Text(v) => (*v).eq(other),
       CueStr::QuotedText(v) => {
         if v.len() > 1 {
-          let inner = &v[1..(v.len() - 1)];
+          let inner = inner_text!(v);
           inner.eq(other)
         } else {
           debug_assert!(
@@ -79,7 +87,7 @@ impl PartialEq<str> for CueStr<'_> {
       }
       CueStr::QuotedTextWithEscape(v) => {
         if v.len() > 1 {
-          let mut lhs = (&v[1..(v.len() - 1)]).chars();
+          let mut lhs = inner_text!(v).chars();
           let mut rhs = other.chars();
 
           loop {
@@ -126,11 +134,16 @@ impl<'a> TryFrom<&'a str> for CueStr<'a> {
   }
 }
 
-/// Strips first and last characters
-macro_rules! inner_text {
-  ($input:expr) => {
-    &$input[1..($input.len() - 1)]
-  };
+impl<'a> TryFrom<&'a CStr> for CueStr<'a> {
+  type Error = CueStrError;
+
+  #[inline]
+  fn try_from(value: &'a CStr) -> Result<Self, Self::Error> {
+    match value.to_str() {
+      Ok(v) => CueStr::from_raw_str(v),
+      Err(_) => Err(CueStrErrorKind::InvalidUtf8.into()),
+    }
+  }
 }
 
 impl core::fmt::Display for CueStr<'_> {
@@ -166,6 +179,16 @@ mod alloc {
   use super::CueStr;
   use alloc::{borrow::Cow, string::ToString};
 
+  impl<'a> CueStr<'a> {
+    pub fn as_cow_str(&self) -> Cow<'a, str> {
+      match self {
+        CueStr::QuotedText(v) => Cow::Borrowed(inner_text!(v)),
+        CueStr::QuotedTextWithEscape(_) => Cow::Owned(self.to_string()),
+        CueStr::Text(v) => Cow::Borrowed(v),
+      }
+    }
+  }
+
   impl<'a> Into<Cow<'a, str>> for CueStr<'a> {
     #[inline]
     fn into(self) -> Cow<'a, str> {
@@ -174,12 +197,9 @@ mod alloc {
   }
 
   impl<'a> Into<Cow<'a, str>> for &CueStr<'a> {
+    #[inline]
     fn into(self) -> Cow<'a, str> {
-      match self {
-        CueStr::QuotedText(v) => Cow::Borrowed(&v[1..(v.len() - 1)]),
-        CueStr::QuotedTextWithEscape(v) => Cow::Owned(v.to_string()),
-        CueStr::Text(v) => Cow::Borrowed(v),
-      }
+      self.as_cow_str()
     }
   }
 }

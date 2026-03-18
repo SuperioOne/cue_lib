@@ -34,6 +34,19 @@ pub enum Commands {
     #[arg(short, long)]
     metadata: bool,
   },
+  Split {
+    /// Root directory for the FILE or, FILE path
+    #[arg(long)]
+    input_path: Option<PathBuf>,
+
+    /// Output directory for the splitted tracks
+    #[arg(short, long)]
+    output_dir: Option<PathBuf>,
+
+    /// Enables Vorbis metadata comments from remarks
+    #[arg(short, long)]
+    metadata: bool,
+  },
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]

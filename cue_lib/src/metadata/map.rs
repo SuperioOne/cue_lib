@@ -1,21 +1,35 @@
-use super::{VorbisComment, VorbisTagName};
+use core::borrow::Borrow;
+
+use super::MetadataTag;
 use crate::core::cue_str::CueStr;
 use alloc::{collections::btree_map::BTreeMap, vec::Vec};
 
 #[derive(Debug)]
-pub struct MetadataMap<'a> {
-  inner: BTreeMap<VorbisTagName, Vec<CueStr<'a>>>,
+pub struct MetadataMap<'a, T>
+where
+  T: Borrow<MetadataTag> + Ord + Clone,
+{
+  inner: BTreeMap<T, Vec<CueStr<'a>>>,
 }
 
-pub struct Iter<'a> {
-  inner: alloc::collections::btree_map::Iter<'a, VorbisTagName, Vec<CueStr<'a>>>,
+pub struct Iter<'a, T>
+where
+  T: Borrow<MetadataTag>,
+{
+  inner: alloc::collections::btree_map::Iter<'a, T, Vec<CueStr<'a>>>,
 }
 
-pub struct IterMut<'a> {
-  inner: alloc::collections::btree_map::IterMut<'a, VorbisTagName, Vec<CueStr<'a>>>,
+pub struct IterMut<'a, T>
+where
+  T: Borrow<MetadataTag>,
+{
+  inner: alloc::collections::btree_map::IterMut<'a, T, Vec<CueStr<'a>>>,
 }
 
-impl<'a> MetadataMap<'a> {
+impl<'a, T> MetadataMap<'a, T>
+where
+  T: Borrow<MetadataTag> + Ord + Clone,
+{
   #[inline]
   pub const fn new() -> Self {
     Self {
@@ -25,43 +39,69 @@ impl<'a> MetadataMap<'a> {
 
   pub fn from_iter<I>(metadata_iter: I) -> Self
   where
-    I: Iterator<Item = VorbisComment<'a>>,
+    I: Iterator<Item = (T, CueStr<'a>)> + 'a,
   {
-    let mut metadata_map = BTreeMap::new();
+    let mut map = Self::new();
 
     for metadata in metadata_iter {
-      let list: &mut Vec<CueStr<'a>> = metadata_map.entry(metadata.tag).or_default();
-      list.push(metadata.value);
+      _ = map.insert(metadata.0, metadata.1)
     }
 
-    Self {
-      inner: metadata_map,
+    map
+  }
+
+  pub fn get<K>(&self, key: K) -> Option<&[CueStr<'a>]>
+  where
+    K: Borrow<MetadataTag>,
+  {
+    self.inner.get(key.borrow()).map(|v| v.as_slice())
+  }
+
+  pub fn get_mut<K>(&mut self, key: K) -> Option<&mut Vec<CueStr<'a>>>
+  where
+    K: Borrow<MetadataTag>,
+  {
+    self.inner.get_mut(key.borrow())
+  }
+
+  pub fn override_key<K>(&mut self, key: K, value: Vec<CueStr<'a>>) -> Option<Vec<CueStr<'a>>>
+  where
+    K: Borrow<T>,
+  {
+    self.inner.insert(key.borrow().clone(), value)
+  }
+
+  pub fn insert<K>(&mut self, key: K, value: CueStr<'a>) -> bool
+  where
+    K: Borrow<T>,
+  {
+    let values = self
+      .inner
+      .entry(key.borrow().clone())
+      .or_insert(Vec::with_capacity(1));
+
+    for existing in values.iter() {
+      if *existing == value {
+        return false;
+      }
     }
+
+    values.push(value);
+    true
   }
 
-  #[inline]
-  pub fn get(&self, key: &VorbisTagName) -> Option<&Vec<CueStr<'a>>> {
-    self.inner.get(key)
+  pub fn remove<K>(&mut self, key: K) -> Option<Vec<CueStr<'a>>>
+  where
+    K: Borrow<MetadataTag>,
+  {
+    self.inner.remove(key.borrow())
   }
 
-  #[inline]
-  pub fn get_mut(&mut self, key: &VorbisTagName) -> Option<&mut Vec<CueStr<'a>>> {
-    self.inner.get_mut(key)
-  }
-
-  #[inline]
-  pub fn insert(&mut self, key: VorbisTagName, value: Vec<CueStr<'a>>) -> Option<Vec<CueStr<'a>>> {
-    self.inner.insert(key, value)
-  }
-
-  #[inline]
-  pub fn remove(&mut self, key: &VorbisTagName) -> Option<Vec<CueStr<'a>>> {
-    self.inner.remove(key)
-  }
-
-  #[inline]
-  pub fn contains_key(&self, key: &VorbisTagName) -> bool {
-    self.inner.contains_key(key)
+  pub fn contains_key<K>(&self, key: K) -> bool
+  where
+    K: Borrow<MetadataTag>,
+  {
+    self.inner.contains_key(key.borrow())
   }
 
   #[inline]
@@ -75,14 +115,14 @@ impl<'a> MetadataMap<'a> {
   }
 
   #[inline]
-  pub fn iter(&'a self) -> Iter<'a> {
+  pub fn iter(&'a self) -> Iter<'a, T> {
     Iter {
       inner: self.inner.iter(),
     }
   }
 
   #[inline]
-  pub fn iter_mut(&'a mut self) -> IterMut<'a> {
+  pub fn iter_mut(&'a mut self) -> IterMut<'a, T> {
     IterMut {
       inner: self.inner.iter_mut(),
     }
@@ -94,8 +134,11 @@ impl<'a> MetadataMap<'a> {
   }
 }
 
-impl<'a> Iterator for Iter<'a> {
-  type Item = (&'a VorbisTagName, &'a Vec<CueStr<'a>>);
+impl<'a, T> Iterator for Iter<'a, T>
+where
+  T: Borrow<MetadataTag>,
+{
+  type Item = (&'a T, &'a Vec<CueStr<'a>>);
 
   #[inline]
   fn next(&mut self) -> Option<Self::Item> {
@@ -103,8 +146,11 @@ impl<'a> Iterator for Iter<'a> {
   }
 }
 
-impl<'a> Iterator for IterMut<'a> {
-  type Item = (&'a VorbisTagName, &'a mut Vec<CueStr<'a>>);
+impl<'a, T> Iterator for IterMut<'a, T>
+where
+  T: Borrow<MetadataTag>,
+{
+  type Item = (&'a T, &'a mut Vec<CueStr<'a>>);
 
   #[inline]
   fn next(&mut self) -> Option<Self::Item> {

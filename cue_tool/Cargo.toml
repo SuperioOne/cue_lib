@@ -10,8 +10,12 @@ homepage.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[profile.release]
+lto = true
+
 [dependencies]
 clap = { version = "4", features = ["derive"] }
+cue_ffmpeg = { path = "../cue_ffmpeg" }
 cue_lib = { path = "../cue_lib", features = ["alloc", "metadata", "serde"] }
 serde = { version = "1", features = ["serde_derive"] }
 serde_json = { version = "1" }

@@ -135,14 +135,24 @@ pub enum CueStrErrorKind {
   MissingEndingQuote,
   /// An unescaped special character was found.
   UnescapedSpecialChar,
+  /// Str is not a valid UTF-8.
+  InvalidUtf8,
+}
+
+impl From<CueStrErrorKind> for CueStrError {
+  #[inline]
+  fn from(value: CueStrErrorKind) -> Self {
+    Self::new(value)
+  }
 }
 
 impl core::fmt::Display for CueStrErrorKind {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     match self {
-      CueStrErrorKind::MissingQuotes => f.write_str("string needs to be quoted"),
-      CueStrErrorKind::MissingEndingQuote => f.write_str("string is missing ending double quote"),
-      CueStrErrorKind::UnescapedSpecialChar => f.write_str("unescaped special character found"),
+      Self::InvalidUtf8 => f.write_str("string is not a valid utf-8"),
+      Self::MissingQuotes => f.write_str("string needs to be quoted"),
+      Self::MissingEndingQuote => f.write_str("string is missing ending double quote"),
+      Self::UnescapedSpecialChar => f.write_str("unescaped special character found"),
     }
   }
 }

@@ -18,7 +18,7 @@ pub struct Frame(u8);
 impl_numeric_range_type!(Second, u8, max = 59, len = 2, display_leading_zeros = 2);
 impl_numeric_range_type!(Frame, u8, max = 74, len = 2, display_leading_zeros = 2);
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Default)]
 pub struct CueTimeStamp {
   minute: u64,
   second: u8,

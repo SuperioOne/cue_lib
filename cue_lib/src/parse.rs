@@ -1,3 +1,5 @@
+#[cfg(feature = "metadata")]
+use crate::metadata::vorbis::VorbisTag;
 use crate::{
   core::{
     album_file::AlbumFile,
@@ -34,7 +36,7 @@ pub struct CueSheet<'a> {
   pub tracks: Vec<TrackInfo<'a>>,
 
   #[cfg(feature = "metadata")]
-  pub remark_metadata: crate::metadata::MetadataMap<'a>,
+  pub remark_metadata: crate::metadata::map::MetadataMap<'a, VorbisTag>,
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
@@ -53,16 +55,16 @@ pub struct TrackInfo<'a> {
   pub track_no: TrackNo,
 
   #[cfg(feature = "metadata")]
-  pub remark_metadata: crate::metadata::MetadataMap<'a>,
+  pub remark_metadata: crate::metadata::map::MetadataMap<'a, VorbisTag>,
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Default, Debug)]
 pub struct TimeInfo {
-  start: u128,
-  end: Option<u128>,
-  pregap_start: Option<u128>,
-  duration: Option<u128>,
+  pub start: CueTimeStamp,
+  pub end: Option<CueTimeStamp>,
+  pub pregap_start: Option<CueTimeStamp>,
+  pub duration: Option<CueTimeStamp>,
 }
 
 #[derive(Default)]
@@ -104,13 +106,14 @@ impl CueSheetParser {
       tracks: Vec::new(),
 
       #[cfg(feature = "metadata")]
-      remark_metadata: crate::metadata::MetadataMap::new(),
+      remark_metadata: crate::metadata::map::MetadataMap::new(),
     };
 
     #[cfg(feature = "metadata")]
     {
       if self.flags.has(ParseOptionFlag::ALLOW_VORBIS_REMARKS) {
-        cuesheet.remark_metadata = crate::metadata::MetadataMap::from_iter(probe.vorbis_comments());
+        cuesheet.remark_metadata =
+          crate::metadata::map::MetadataMap::from_iter(probe.vorbis_comments());
       }
     };
 
@@ -134,8 +137,8 @@ impl CueSheetParser {
         songwriter: track.songwriter(),
         sub_indexes: None,
         time_info: TimeInfo {
-          start: track.start_index().as_millis(),
-          pregap_start: track.pregap_index().map(|v| v.as_millis()),
+          start: track.start_index(),
+          pregap_start: track.pregap_index(),
           end: None,
           duration: None,
         },
@@ -143,7 +146,7 @@ impl CueSheetParser {
         track_no: track.track_no(),
 
         #[cfg(feature = "metadata")]
-        remark_metadata: crate::metadata::MetadataMap::new(),
+        remark_metadata: crate::metadata::map::MetadataMap::new(),
       };
 
       Self::process_sub_indexes(&mut track_info, track.sub_indexes())?;
@@ -152,7 +155,7 @@ impl CueSheetParser {
       {
         if self.flags.has(ParseOptionFlag::ALLOW_VORBIS_REMARKS) {
           track_info.remark_metadata =
-            crate::metadata::MetadataMap::from_iter(track.vorbis_comments());
+            crate::metadata::map::MetadataMap::from_iter(track.vorbis_comments());
         }
       }
 
@@ -192,8 +195,9 @@ impl CueSheetParser {
           next_track.time_info.start
         };
 
+        let duration = end.as_millis() - track.time_info.start.as_millis();
         track.time_info.end = Some(end);
-        track.time_info.duration = Some(end - track.time_info.start);
+        track.time_info.duration = Some(CueTimeStamp::from_millis(duration));
       }
     }
   }
