@@ -3,7 +3,7 @@ use cue_ffmpeg::{AvLogLevel, avlib_log_level};
 use self::{
   args::Args,
   cli_error::cli_stderr,
-  command::{Command, convert::CmdConvert, query::CmdQuery, split::CmdSplit, verify::CmdVerify},
+  command::{Command, convert::CmdConvert, query::CmdQuery, split::CmdSplit, test::CmdTest},
 };
 use std::{io::Read as _, path::Path, process::ExitCode};
 
@@ -55,8 +55,8 @@ fn main() -> ExitCode {
   }
 
   match args.command {
-    args::Commands::Verify => {
-      let cmd = CmdVerify::new(cuesheet.as_str());
+    args::Commands::Test => {
+      let cmd = CmdTest::new(cuesheet.as_str());
       run!(cmd)
     }
     args::Commands::ConvertJson {

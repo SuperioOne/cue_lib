@@ -111,71 +111,61 @@ impl ErrorFormat for cue_lib::error::CueLibError {
             AnsiCodes::default()
           };
 
-          let line_no = parse_error.line();
-          let mut line_iter = input_buffer.lines().skip(line_no).take(10);
+          let line_idx = parse_error.line();
+          let line_no = line_idx + 1;
+          let start = line_idx.saturating_sub(10);
 
-          if let Some(error_line) = line_iter.next() {
-            let column = if parse_error.column() > 0 {
-              parse_error.column()
+          for (rel_idx, line) in input_buffer.lines().skip(start).take(20).enumerate() {
+            if rel_idx + start == line_idx {
+              let column_idx = if parse_error.column() > 0 {
+                parse_error.column()
+              } else {
+                line.chars().take_while(|v| v.is_whitespace()).count()
+              };
+              let column = column_idx + 1;
+
+              eprintln!(
+                "{ansi_err}{line}{reset}",
+                ansi_err = ansi.error,
+                reset = ansi.reset
+              );
+
+              if column_idx > 0 {
+                eprint!("{:>column_idx$}", ' ')
+              }
+
+              eprintln!(
+                "{ansi_warn}^{dash:->24}{self} at {line_no}:{column}{reset}",
+                dash = ' ',
+                ansi_warn = ansi.warning,
+                reset = ansi.reset
+              );
             } else {
-              error_line.chars().take_while(|v| v.is_whitespace()).count()
-            };
-
-            eprintln!(
-              "{ansi_info}Cuesheet Section:{reset}",
-              ansi_info = ansi.info,
-              reset = ansi.reset
-            );
-
-            for line in input_buffer
-              .lines()
-              .skip(line_no.saturating_sub(5))
-              .take_while(|l| *l != error_line)
-            {
               eprintln!("{line}");
             }
+          }
 
-            eprintln!(
-              "{ansi_err}{error_line}{reset}",
-              ansi_err = ansi.error,
-              reset = ansi.reset
-            );
-
-            if column > 0 {
-              eprint!("{:>column$}", ' ', column = column)
-            }
-
-            eprintln!(
-              "{ansi_warn}^{dash:->24}{self} at {line_no}:{column}{reset}",
-              dash = ' ',
-              ansi_warn = ansi.warning,
-              reset = ansi.reset
-            );
-
-            for line in line_iter {
-              eprintln!("{line}");
-            }
-
+          if let Some((_, line)) = input_buffer
+            .lines()
+            .enumerate()
+            .find(|(idx, _)| *idx == line_idx)
+          {
             eprintln!(
               "\n{ansi_info}Line {line_no}: UTF-8 Character Breakdown{reset}",
               ansi_info = ansi.info,
               reset = ansi.reset,
-              line_no = line_no + 1
             );
-
             eprintln!("\n  Column | UTF-8 Character");
             eprintln!("  -------|----------------");
 
-            for (idx, char) in error_line.chars().enumerate() {
+            for (idx, char) in line.chars().enumerate() {
               eprintln!(
-                "  {idx:<7}| {ansi_info}{char:?}{reset}",
+                "  {column:<7}| {ansi_info}{char:?}{reset}",
+                column = idx + 1,
                 ansi_info = ansi.info,
                 reset = ansi.reset,
               );
             }
-          } else {
-            // Fallback in-case of line does not exists.
-            eprintln!("{self}");
           }
 
           Ok(())

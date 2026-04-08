@@ -39,7 +39,6 @@ impl AudioFifo {
 
   pub fn push(&mut self, data: *const *mut u8, frame_size: i32) -> Result<usize, AvError> {
     let result = unsafe { av_audio_fifo_write(self.inner, data.cast(), frame_size as i32) };
-
     AvError::from_raw_err_code(result)?;
     Ok(result as usize)
   }

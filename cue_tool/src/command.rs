@@ -3,7 +3,7 @@ use crate::cli_error::ErrorFormat;
 pub mod convert;
 pub mod query;
 pub mod split;
-pub mod verify;
+pub mod test;
 
 pub trait Command
 where
