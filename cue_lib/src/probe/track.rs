@@ -4,7 +4,7 @@ use crate::{
     command::Command,
     cue_str::CueStr,
     flags::TrackFlag,
-    timestamp::CueTimeStamp,
+    timestamp::CueTimestamp,
     track::{DataType, Track, TrackIndex, TrackNo},
   },
   discid::isrc::Isrc,
@@ -36,10 +36,10 @@ pub struct TrackProbe<'a> {
   pub(super) isrc: Option<Isrc>,
 
   /// Post-gap time stamp (POSTGAP command)
-  pub(super) postgap: Option<CueTimeStamp>,
+  pub(super) postgap: Option<CueTimestamp>,
 
   /// Pre-gap time stamp (PREGAP command)
-  pub(super) pregap: Option<CueTimeStamp>,
+  pub(super) pregap: Option<CueTimestamp>,
 
   /// Performer name for this specific track (PERFORMER command)
   pub(super) performer: Option<CueStr<'a>>,
@@ -54,10 +54,10 @@ pub struct TrackProbe<'a> {
   pub(super) sub_index_probe: TrackIndexProbe<'a>,
 
   /// Track start timestamp (INDEX 01)
-  pub(super) start_index: CueTimeStamp,
+  pub(super) start_index: CueTimestamp,
 
   /// Optional timestamp for pregap segment exist in the track file (INDEX 00)
-  pub(super) pregap_index: Option<CueTimeStamp>,
+  pub(super) pregap_index: Option<CueTimestamp>,
 
   /// Slice containing the complete track portion of the cuesheet
   pub(super) track_buffer: &'a str,
@@ -100,12 +100,12 @@ impl<'a> TrackProbe<'a> {
   }
 
   #[inline]
-  pub const fn postgap(&self) -> Option<CueTimeStamp> {
+  pub const fn postgap(&self) -> Option<CueTimestamp> {
     self.postgap
   }
 
   #[inline]
-  pub const fn pregap(&self) -> Option<CueTimeStamp> {
+  pub const fn pregap(&self) -> Option<CueTimestamp> {
     self.pregap
   }
 
@@ -130,12 +130,12 @@ impl<'a> TrackProbe<'a> {
   }
 
   #[inline]
-  pub const fn start_index(&self) -> CueTimeStamp {
+  pub const fn start_index(&self) -> CueTimestamp {
     self.start_index
   }
 
   #[inline]
-  pub const fn pregap_index(&self) -> Option<CueTimeStamp> {
+  pub const fn pregap_index(&self) -> Option<CueTimestamp> {
     self.pregap_index
   }
 

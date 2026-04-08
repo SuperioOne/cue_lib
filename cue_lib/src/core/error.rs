@@ -45,7 +45,7 @@ impl core::error::Error for DataTypeParseError {}
 /// Represents an error when parsing a timestamp.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TimeStampParseError {
-  kind: TimeStampParseErrorKind,
+  kind: TimestampParseErrorKind,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -61,19 +61,19 @@ impl core::error::Error for FlagParseError {}
 
 impl TimeStampParseError {
   #[inline]
-  pub const fn new(kind: TimeStampParseErrorKind) -> Self {
+  pub const fn new(kind: TimestampParseErrorKind) -> Self {
     Self { kind }
   }
 
   #[inline]
-  pub const fn kind(&self) -> TimeStampParseErrorKind {
+  pub const fn kind(&self) -> TimestampParseErrorKind {
     self.kind
   }
 }
 
 /// Kinds of errors that can occur while parsing a timestamp.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum TimeStampParseErrorKind {
+pub enum TimestampParseErrorKind {
   /// The timestamp has an invalid length.
   InvalidLength,
   /// A character in the timestamp is not valid.
@@ -86,16 +86,16 @@ pub enum TimeStampParseErrorKind {
   InvalidFrame,
 }
 
-impl core::fmt::Display for TimeStampParseErrorKind {
+impl core::fmt::Display for TimestampParseErrorKind {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     match self {
-      TimeStampParseErrorKind::InvalidLength => f.write_str("timestamp length is incorrect"),
-      TimeStampParseErrorKind::InvalidCharacter => {
+      TimestampParseErrorKind::InvalidLength => f.write_str("timestamp length is incorrect"),
+      TimestampParseErrorKind::InvalidCharacter => {
         f.write_str("timestamp contains invalid character")
       }
-      TimeStampParseErrorKind::InvalidMinute => f.write_str("timestamp minute is invalid"),
-      TimeStampParseErrorKind::InvalidSecond => f.write_str("timestamp second is invalid"),
-      TimeStampParseErrorKind::InvalidFrame => f.write_str("timestamp frame is invalid"),
+      TimestampParseErrorKind::InvalidMinute => f.write_str("timestamp minute is invalid"),
+      TimestampParseErrorKind::InvalidSecond => f.write_str("timestamp second is invalid"),
+      TimestampParseErrorKind::InvalidFrame => f.write_str("timestamp frame is invalid"),
     }
   }
 }

@@ -2,7 +2,7 @@ use super::{
   album_file::KnownFileType,
   cue_str::CueStr,
   flags::TrackFlag,
-  timestamp::CueTimeStamp,
+  timestamp::CueTimestamp,
   track::{DataType, IndexNo, TrackNo},
 };
 use serde::Serialize;
@@ -34,7 +34,7 @@ impl Serialize for IndexNo {
   }
 }
 
-impl Serialize for CueTimeStamp {
+impl Serialize for CueTimestamp {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
     S: serde::Serializer,

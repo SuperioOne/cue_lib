@@ -37,18 +37,6 @@ impl AvFrame {
   pub fn alloc_buffer(&mut self) -> Result<(), AvError> {
     unsafe_av_result!(av_frame_get_buffer(self.inner, 0))
   }
-
-  pub fn timestamp_add_offset(&mut self, time_base: AVRational, value: AvTimestamp) {
-    if let Some(pts) = ts_as_option!(self.pts) {
-      self.pts = (AvTimestamp::new(pts, time_base) + value).as_i64();
-    }
-  }
-
-  pub fn timestamp_sub_offset(&mut self, time_base: AVRational, value: AvTimestamp) {
-    if let Some(pts) = ts_as_option!(self.pts) {
-      self.pts = (AvTimestamp::new(pts, time_base) - value).as_i64();
-    }
-  }
 }
 
 impl Drop for AvFrame {

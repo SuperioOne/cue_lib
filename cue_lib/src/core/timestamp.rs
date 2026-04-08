@@ -1,4 +1,4 @@
-use super::error::{TimeStampParseError, TimeStampParseErrorKind};
+use super::error::{TimeStampParseError, TimestampParseErrorKind};
 use crate::internal::range::impl_numeric_range_type;
 use core::time::Duration;
 
@@ -19,13 +19,13 @@ impl_numeric_range_type!(Second, u8, max = 59, len = 2, display_leading_zeros = 
 impl_numeric_range_type!(Frame, u8, max = 74, len = 2, display_leading_zeros = 2);
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Default)]
-pub struct CueTimeStamp {
+pub struct CueTimestamp {
   minute: u64,
   second: u8,
   frame: u8,
 }
 
-impl CueTimeStamp {
+impl CueTimestamp {
   pub const fn new(minute: u64, second: Second, frame: Frame) -> Self {
     Self {
       frame: frame.into_inner(),
@@ -66,7 +66,7 @@ impl CueTimeStamp {
   }
 }
 
-impl Ord for CueTimeStamp {
+impl Ord for CueTimestamp {
   fn cmp(&self, other: &Self) -> core::cmp::Ordering {
     match self.minute.cmp(&other.minute) {
       core::cmp::Ordering::Equal => {}
@@ -82,21 +82,21 @@ impl Ord for CueTimeStamp {
   }
 }
 
-impl PartialOrd for CueTimeStamp {
+impl PartialOrd for CueTimestamp {
   #[inline]
   fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
     Some(self.cmp(other))
   }
 }
 
-impl From<Duration> for CueTimeStamp {
+impl From<Duration> for CueTimestamp {
   #[inline]
   fn from(value: Duration) -> Self {
     Self::from_millis(value.as_millis())
   }
 }
 
-impl core::fmt::Display for CueTimeStamp {
+impl core::fmt::Display for CueTimestamp {
   #[inline]
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     f.write_fmt(format_args!(
@@ -108,21 +108,21 @@ impl core::fmt::Display for CueTimeStamp {
   }
 }
 
-impl Into<Duration> for CueTimeStamp {
+impl Into<Duration> for CueTimestamp {
   #[inline]
   fn into(self) -> Duration {
     self.as_duration()
   }
 }
 
-impl core::str::FromStr for CueTimeStamp {
+impl core::str::FromStr for CueTimestamp {
   type Err = TimeStampParseError;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     // 0:00:00
     if s.len() < 7 {
       return Err(TimeStampParseError::new(
-        TimeStampParseErrorKind::InvalidLength,
+        TimestampParseErrorKind::InvalidLength,
       ));
     }
 
@@ -131,26 +131,26 @@ impl core::str::FromStr for CueTimeStamp {
 
     let second: Second = match s.as_bytes().get(second_start) {
       Some(b':') => Second::from_str(&s[(second_start + 1)..frame_start])
-        .map_err(|_| TimeStampParseError::new(TimeStampParseErrorKind::InvalidSecond))?,
+        .map_err(|_| TimeStampParseError::new(TimestampParseErrorKind::InvalidSecond))?,
       _ => {
         return Err(TimeStampParseError::new(
-          TimeStampParseErrorKind::InvalidCharacter,
+          TimestampParseErrorKind::InvalidCharacter,
         ));
       }
     };
 
     let frame: Frame = match s.as_bytes().get(frame_start) {
       Some(b':') => Frame::from_str(&s[(frame_start + 1)..])
-        .map_err(|_| TimeStampParseError::new(TimeStampParseErrorKind::InvalidFrame))?,
+        .map_err(|_| TimeStampParseError::new(TimestampParseErrorKind::InvalidFrame))?,
       _ => {
         return Err(TimeStampParseError::new(
-          TimeStampParseErrorKind::InvalidCharacter,
+          TimestampParseErrorKind::InvalidCharacter,
         ));
       }
     };
 
     let minute = u64::from_str_radix(&s[..second_start], 10)
-      .map_err(|_| TimeStampParseError::new(TimeStampParseErrorKind::InvalidMinute))?;
+      .map_err(|_| TimeStampParseError::new(TimestampParseErrorKind::InvalidMinute))?;
 
     Ok(Self {
       second: second.into_inner(),

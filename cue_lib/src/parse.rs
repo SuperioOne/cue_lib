@@ -5,7 +5,7 @@ use crate::{
     album_file::AlbumFile,
     cue_str::CueStr,
     flags::TrackFlag,
-    timestamp::CueTimeStamp,
+    timestamp::CueTimestamp,
     track::{DataType, TrackNo},
   },
   discid::isrc::Isrc,
@@ -46,10 +46,10 @@ pub struct TrackInfo<'a> {
   pub flags: Option<TrackFlag>,
   pub isrc: Option<Isrc>,
   pub performer: Option<CueStr<'a>>,
-  pub postgap: Option<CueTimeStamp>,
-  pub pregap: Option<CueTimeStamp>,
+  pub postgap: Option<CueTimestamp>,
+  pub pregap: Option<CueTimestamp>,
   pub songwriter: Option<CueStr<'a>>,
-  pub sub_indexes: Option<Vec<CueTimeStamp>>,
+  pub sub_indexes: Option<Vec<CueTimestamp>>,
   pub time_info: TimeInfo,
   pub title: Option<CueStr<'a>>,
   pub track_no: TrackNo,
@@ -61,10 +61,10 @@ pub struct TrackInfo<'a> {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Default, Debug)]
 pub struct TimeInfo {
-  pub start: CueTimeStamp,
-  pub end: Option<CueTimeStamp>,
-  pub pregap_start: Option<CueTimeStamp>,
-  pub duration: Option<CueTimeStamp>,
+  pub start: CueTimestamp,
+  pub end: Option<CueTimestamp>,
+  pub pregap_start: Option<CueTimestamp>,
+  pub duration: Option<CueTimestamp>,
 }
 
 #[derive(Default)]
@@ -197,7 +197,7 @@ impl CueSheetParser {
 
         let duration = end.as_millis() - track.time_info.start.as_millis();
         track.time_info.end = Some(end);
-        track.time_info.duration = Some(CueTimeStamp::from_millis(duration));
+        track.time_info.duration = Some(CueTimestamp::from_millis(duration));
       }
     }
   }

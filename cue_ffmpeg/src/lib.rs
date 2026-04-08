@@ -1,4 +1,4 @@
-use cue_ffmpeg_sys::{avcodec_version, avformat_version, avutil_version};
+use cue_ffmpeg_sys::{av_log_set_level, avcodec_version, avformat_version, avutil_version};
 
 pub mod codec;
 pub mod common;
@@ -6,12 +6,47 @@ pub mod error;
 pub mod format;
 pub mod util;
 
-// FORMAT
-
-// CODEC
-
 pub mod ffmpeg {
   pub use cue_ffmpeg_sys::*;
+}
+
+pub enum AvLogLevel {
+  /// Print no output.
+  Quiet = -8,
+
+  /// Something went really wrong and we will crash now.
+  Panic = 0,
+
+  ///  Something went wrong and recovery is not possible.
+  ///  For example, no header was found for a format which depends
+  ///  on headers or an illegal combination of parameters is used.
+  Fatal = 8,
+
+  ///  Something went wrong and cannot losslessly be recovered.
+  ///  However, not all future data is affected.
+  Error = 16,
+
+  /// Something somehow does not look correct. This may or may not
+  /// lead to problems. An example would be the use of '-vstrict -2'.
+  Warning = 24,
+
+  /// Standard information.
+  Info = 32,
+
+  /// Detailed information.
+  Verbose = 40,
+
+  /// Stuff which is only useful for libav* developers.
+  Debug = 48,
+
+  /// Extremely verbose debugging, useful for libav* development.
+  Trace = 56,
+}
+
+pub fn avlib_log_level(level: AvLogLevel) {
+  unsafe {
+    av_log_set_level(level as i32);
+  }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -24,7 +59,7 @@ pub struct VersionInfo {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Version(u32);
 
-pub fn linked_lib_version() -> VersionInfo {
+pub fn avlib_version() -> VersionInfo {
   VersionInfo {
     avutil: Version(unsafe { avutil_version() }),
     avformat: Version(unsafe { avformat_version() }),

@@ -156,7 +156,7 @@ macro_rules! impl_metadata_mapping {
           return Err(InvalidMetadataTagName);
         }
 
-        match LOOKUP_TABLE.binary_search_by(|(name, _)| cmp_ignore_ascii_case(&name, s)) {
+        match LOOKUP_TABLE.binary_search_by(|(name, _)| $crate::metadata::util::cmp_ignore_ascii_case(&name, s)) {
           Ok(idx) => match LOOKUP_TABLE.get(idx) {
             Some((_, value)) => Ok(*value),
             None => Err(InvalidMetadataTagName),

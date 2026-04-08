@@ -2,7 +2,7 @@ use super::{
   album_file::AlbumFile,
   cue_str::CueStr,
   flags::TrackFlag,
-  timestamp::CueTimeStamp,
+  timestamp::CueTimestamp,
   track::{Track, TrackIndex},
 };
 use crate::discid::isrc::Isrc;
@@ -30,10 +30,10 @@ pub enum Command<'a> {
   Performer { value: CueStr<'a> },
 
   /// Specifies length of the track post-gap
-  Postgap { value: CueTimeStamp },
+  Postgap { value: CueTimestamp },
 
   /// Specifies length of the track pre-gap
-  Pregap { value: CueTimeStamp },
+  Pregap { value: CueTimestamp },
 
   /// Comment line, but it can also be used as additional metadata
   Remark { value: &'a str },

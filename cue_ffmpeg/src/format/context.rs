@@ -1,7 +1,7 @@
 use crate::{
   common::{ts_as_option, unsafe_av_result},
   error::{AvError, AvLibError},
-  format::stream::{StreamIter, StreamMutIter, StreamType, copy_stream_properties},
+  format::stream::{StreamIter, StreamMutIter, StreamType},
   util::{
     dictionary::{AvDictionaryMut, AvDictionaryRef},
     timestamp::AvTimestamp,
@@ -35,10 +35,12 @@ impl AvContext {
     }
   }
 
+  #[inline]
   pub fn seek_forward(&mut self, stream_index: u32, timestamp: Duration) -> Result<(), AvError> {
     self.internal_seek(stream_index, timestamp, 0)
   }
 
+  #[inline]
   pub fn seek_backward(&mut self, stream_index: u32, timestamp: Duration) -> Result<(), AvError> {
     self.internal_seek(stream_index, timestamp, AVSEEK_FLAG_BACKWARD as i32)
   }
@@ -102,15 +104,6 @@ impl AvContext {
     }
   }
 
-  pub fn copy_streams(&self, dst: &mut Self) -> Result<(), AvError> {
-    for in_stream in self.stream_iter() {
-      let out_stream = dst.create_stream()?;
-      copy_stream_properties(in_stream, out_stream)?;
-    }
-
-    Ok(())
-  }
-
   pub fn stream_iter(&self) -> StreamIter<'_> {
     StreamIter::from_context(&self)
   }
@@ -119,18 +112,12 @@ impl AvContext {
     StreamMutIter::from_context(self)
   }
 
-  pub const fn metadata(&self) -> Option<AvDictionaryRef<'_>> {
-    match unsafe { (*self.inner).metadata.as_ref() } {
-      Some(v) => Some(AvDictionaryRef::from_ref(v)),
-      None => None,
-    }
+  pub const fn metadata(&self) -> AvDictionaryRef<'_> {
+    AvDictionaryRef::from_ptr_ref(&unsafe { &mut *self.inner }.metadata)
   }
 
-  pub fn metadata_mut(&mut self) -> Option<AvDictionaryMut<'_>> {
-    match unsafe { (*self.inner).metadata.as_mut() } {
-      Some(v) => Some(AvDictionaryMut::from_mut(v)),
-      None => None,
-    }
+  pub fn metadata_mut(&mut self) -> AvDictionaryMut<'_> {
+    AvDictionaryMut::from_ptr_ref(&mut unsafe { &mut *self.inner }.metadata)
   }
 
   pub fn copy_metadata_to(&self, dest: &mut AvContext) -> Result<(), AvError> {

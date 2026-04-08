@@ -12,7 +12,7 @@ pub mod vorbis;
 
 use core::borrow::Borrow;
 
-pub trait Metadata: Borrow<MetadataTag> + Borrow<str> + Ord + Clone {
+pub trait Metadata: Borrow<MetadataTag> + Borrow<str> + Ord + Clone + TryFrom<MetadataTag> {
   fn as_str(&self) -> &'static str;
 }
 
@@ -64,7 +64,7 @@ pub enum MetadataTag {
   OriginalAlbum,
   OriginalArtist,
   OriginalDate,
-  OriginalFilename,
+  OriginalFileName,
   OriginalYear,
   Performer,
   Producer,

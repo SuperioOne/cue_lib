@@ -1,3 +1,5 @@
+use cue_ffmpeg::{AvLogLevel, avlib_log_level};
+
 use self::{
   args::Args,
   cli_error::cli_stderr,
@@ -90,6 +92,14 @@ fn main() -> ExitCode {
         .set_vorbis_remarks(metadata)
         .set_input_path(input_path)
         .set_output_dir(output_dir);
+
+      let av_verbosity = match verbosity {
+        args::VerboseLevel::Default => AvLogLevel::Error,
+        args::VerboseLevel::Full => AvLogLevel::Info,
+        args::VerboseLevel::Quiet => AvLogLevel::Quiet,
+      };
+
+      avlib_log_level(av_verbosity);
 
       run!(cmd)
     }

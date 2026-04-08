@@ -1,4 +1,17 @@
-use super::error::SplitError;
+#![allow(nonstandard_style)]
+
+// Inspired from FFmpeg's transcode_aac.c example.
+//
+// Original Copyright (c) 2013-2022 Andreas Unterweger
+//
+// Disclaimer:
+// Some brain cells were harmed while encoding flacs with proper duration header.
+
+use super::{
+  error::SplitError,
+  metadata::{AvLibTagger, CodecMetadataTagger, Id3Tagger, VorbisTagger},
+};
+use crate::command::split::metadata::MetadataContainer;
 use cue_ffmpeg::{
   codec::{context::AvCodecContext, frame::AvFrame, packet::AvPacket},
   error::{AvError, AvLibError},
@@ -7,7 +20,7 @@ use cue_ffmpeg::{
     AVCodecID_AV_CODEC_ID_MP3ADU, AVCodecID_AV_CODEC_ID_MP3ON4, AVFMT_GLOBALHEADER, AVStream,
   },
   format::{
-    context::{AvInputContext, AvOutputContext},
+    context::{AvContext, AvInputContext, AvOutputContext},
     stream::{StreamType, copy_stream_properties},
   },
   util::{audio_fifo::AudioFifo, dictionary::AvDictionaryRef, timestamp::AvTimestamp},
@@ -27,6 +40,10 @@ const UNTITLED_TRACK: CueStr<'static> = CueStr::Text("untitled");
 const EXT_FLAC: &'static str = "flac";
 const EXT_MP3: &'static str = "mp3";
 
+static VORBIS_TAGGER: VorbisTagger = VorbisTagger;
+static ID3_TAGGER: Id3Tagger = Id3Tagger;
+static AV_LIB_TAGGER: AvLibTagger = AvLibTagger;
+
 struct SplitOutput {
   start_time: AvTimestamp,
   end_time: Option<AvTimestamp>,
@@ -36,11 +53,7 @@ struct SplitOutput {
 }
 
 pub struct SplitTranscoder {
-  input: AvInputContext,
   outputs: Vec<SplitOutput>,
-  audio_stream_index: i32,
-  audio_decoder: AvCodecContext,
-  cover_image_stream_index: Option<i32>,
   cover_image_packets: Vec<AvPacket>,
 }
 
@@ -58,8 +71,6 @@ impl SplitTranscoder {
       return Err(SplitError::NothingToSplit);
     }
 
-    let input = AvInputContext::open_path(input_path.as_ref())?;
-
     if output_dir.as_ref().exists() {
       if !output_dir.as_ref().is_dir() {
         return Err(SplitError::InvalidOutputDir(
@@ -70,6 +81,7 @@ impl SplitTranscoder {
       std::fs::create_dir_all(&output_dir)?;
     }
 
+    let input = AvInputContext::open_path(input_path.as_ref())?;
     let audio_stream = input
       .find_best_stream(StreamType::Audio)
       .ok_or(SplitError::NothingToSplit)
@@ -81,27 +93,27 @@ impl SplitTranscoder {
         }
       })?;
 
-    let input_cover_img = find_cover_image_stream(&input);
     let audio_codec = unsafe { &*audio_stream.codecpar };
-    let file_extension = match audio_codec.codec_id {
+    let (file_extension, tagger) = match audio_codec.codec_id {
       AVCodecID_AV_CODEC_ID_MP3 | AVCodecID_AV_CODEC_ID_MP3ADU | AVCodecID_AV_CODEC_ID_MP3ON4 => {
-        Some(EXT_MP3)
+        (EXT_MP3, &ID3_TAGGER as &dyn CodecMetadataTagger)
       }
-      AVCodecID_AV_CODEC_ID_FLAC => Some(EXT_FLAC),
+      AVCodecID_AV_CODEC_ID_FLAC => (EXT_FLAC, &VORBIS_TAGGER as &dyn CodecMetadataTagger),
       _ => input_path
         .as_ref()
         .extension()
         .map(|v| v.to_str())
-        .flatten(),
-    }
-    .ok_or(SplitError::UnknownAudioContainer)?;
+        .flatten()
+        .map(|v| (v, &AV_LIB_TAGGER as &dyn CodecMetadataTagger))
+        .ok_or(SplitError::UnknownAudioContainer)?,
+    };
 
     let mut decoder = AvCodecContext::new_decoder(audio_codec.codec_id);
     decoder.copy_params_from(audio_codec)?;
-    decoder.frame_size = unsafe { *audio_stream.codecpar }.frame_size;
     decoder.pkt_timebase = audio_stream.time_base;
     decoder.open()?;
 
+    let input_cover_stream = find_cover_image_stream(&input);
     let mut outputs = Vec::with_capacity(cuesheet.tracks.len());
 
     for track_info in cuesheet.tracks.iter() {
@@ -116,64 +128,59 @@ impl SplitTranscoder {
         .join(file_name)
         .with_added_extension(file_extension);
 
-      let mut output_context = AvOutputContext::open_path(output_path)?;
-      let flags = output_context.flags;
-      let output_audio = output_context.create_stream()?;
-
+      let mut context = AvOutputContext::open_path(output_path)?;
+      let flags = context.flags;
+      let output_audio = context.create_stream()?;
       let mut encoder = AvCodecContext::new_encoder(audio_codec.codec_id);
       encoder.copy_params_from(audio_codec)?;
+      encoder.frame_size = decoder.frame_size;
       encoder.time_base.den = audio_codec.sample_rate;
       encoder.time_base.num = 1;
-      encoder.frame_size = unsafe { *audio_stream.codecpar }.frame_size;
 
       if (flags & AVFMT_GLOBALHEADER as i32) == AVFMT_GLOBALHEADER as i32 {
         encoder.flags |= AV_CODEC_FLAG_GLOBAL_HEADER as i32;
       }
 
-      encoder.open()?;
-      encoder.copy_params_to(unsafe { output_audio.codecpar.as_mut() }.expect("dafuq"))?;
+      encoder.copy_params_to(unsafe { &mut *output_audio.codecpar })?;
 
-      if let Some(cover) = input_cover_img {
-        let output_cover_img = output_context.create_stream()?;
-        copy_stream_properties(cover, output_cover_img)?;
+      if let Some(cover) = input_cover_stream {
+        let output_cover_stream = context.create_stream()?;
+        copy_stream_properties(cover, output_cover_stream)?;
       }
 
+      let mut output_metadata = MetadataContainer::new(context.metadata_mut(), tagger);
+      let input_metadata = input.metadata();
+
+      output_metadata.insert_from_av_dict(input_metadata.iter());
+      output_metadata.insert_from_cuesheet(cuesheet);
+      output_metadata.insert_from_track(track_info);
+
       outputs.push(SplitOutput {
-        start_time: track_info.time_info.start.as_duration().into(),
-        end_time: track_info.time_info.end.map(|v| v.as_duration().into()),
-        context: output_context,
+        context,
         encoder,
+        end_time: track_info.time_info.end.map(|v| v.as_duration().into()),
         samples: AudioFifo::new(decoder.sample_fmt, decoder.ch_layout.nb_channels),
+        start_time: track_info.time_info.start.as_duration().into(),
       });
     }
 
-    Ok(Self {
-      cover_image_packets: Vec::new(),
-      audio_stream_index: audio_stream.index,
-      cover_image_stream_index: input_cover_img.map(|v| v.index),
-      audio_decoder: decoder,
-      outputs,
-      input,
-    })
-  }
-
-  pub fn split(mut self) -> Result<(), SplitError> {
     let mut pkt = AvPacket::try_new()?;
+    let mut cover_image_packets = Vec::new();
 
     'DECODER: loop {
       pkt.reset();
 
-      match self.input.read_frame(&mut pkt) {
+      match input.read_frame(&mut pkt) {
         Ok(()) => {
-          if pkt.stream_index == self.audio_stream_index {
-            let frame_ts = AvTimestamp::new(pkt.pts, self.audio_decoder.pkt_timebase);
+          if pkt.stream_index == audio_stream.index {
+            let frame_ts = AvTimestamp::new(pkt.pts, decoder.pkt_timebase);
 
-            for output in self.outputs.iter_mut() {
+            for output in outputs.iter_mut() {
               if frame_ts >= output.start_time && output.end_time.is_none_or(|v| frame_ts <= v) {
-                self.audio_decoder.send_packet(&pkt)?;
+                decoder.send_packet(&pkt)?;
                 let mut frame = AvFrame::try_new()?;
 
-                match self.audio_decoder.receive_frame(&mut frame) {
+                match decoder.receive_frame(&mut frame) {
                   Ok(()) => {
                     output.samples.push(frame.data.as_ptr(), frame.nb_samples)?;
                     break;
@@ -185,11 +192,10 @@ impl SplitTranscoder {
                 }
               }
             }
-          } else if let Some(cover_stream_index) = self.cover_image_stream_index
-            && pkt.stream_index == cover_stream_index
+          } else if let Some(cover_stream) = input_cover_stream
+            && pkt.stream_index == cover_stream.index
           {
-            pkt.stream_index = cover_stream_index;
-            self.cover_image_packets.push(pkt.clone());
+            cover_image_packets.push(pkt.clone());
           }
         }
         Err(AvError::AvLibError(AvLibError::Eof)) => {
@@ -201,21 +207,41 @@ impl SplitTranscoder {
       }
     }
 
+    Ok(Self {
+      cover_image_packets,
+      outputs,
+    })
+  }
+
+  pub fn split(self) -> Result<(), SplitError> {
     for mut output in self.outputs.into_iter() {
+      let cover_stream_idx = find_cover_image_stream(&output.context).map(|v| v.index);
       let mut pts: i64 = 0;
       let mut writer = output.context.start_writer()?;
-      let mut packet = AvPacket::try_new()?;
 
+      output.encoder.open()?;
       writer.write_header()?;
 
-      for pkt in self.cover_image_packets.iter() {
-        let mut owned_pkt = pkt.clone();
-        writer.write_frame(&mut owned_pkt)?;
+      if let Some(cover_idx) = cover_stream_idx {
+        let mut cover_packet = AvPacket::try_new()?;
+
+        for pkt in self.cover_image_packets.iter() {
+          cover_packet.ref_from(pkt)?;
+          cover_packet.stream_index = cover_idx;
+          writer.write_frame(&mut cover_packet)?;
+          cover_packet.reset();
+        }
       }
 
+      let mut audio_packet = AvPacket::try_new()?;
+      let mut frame = AvFrame::try_new()?;
+
       while !output.samples.is_empty() {
-        let frame_size = output.samples.len().min(output.encoder.frame_size as usize) as i32;
-        let mut frame = AvFrame::try_new()?;
+        frame.reset();
+        let frame_size = {
+          let estimated = output.samples.len().min(output.encoder.frame_size as usize) as i32;
+          if estimated <= 0 { 4096 } else { estimated }
+        };
 
         frame.nb_samples = frame_size;
         frame.copy_channel_layout(&output.encoder.ch_layout)?;
@@ -230,10 +256,10 @@ impl SplitTranscoder {
 
         output.encoder.send_frame(&frame)?;
 
-        packet.reset();
-        match output.encoder.receive_packet(&mut packet) {
+        audio_packet.reset();
+        match output.encoder.receive_packet(&mut audio_packet) {
           Ok(()) => {
-            writer.write_frame(&mut packet)?;
+            writer.write_frame(&mut audio_packet)?;
           }
           Err(AvError::AvLibError(AvLibError::Eof)) => break,
           Err(AvError::IOError(err)) if err.kind() == ErrorKind::WouldBlock => {
@@ -243,13 +269,14 @@ impl SplitTranscoder {
         }
       }
 
-      output.encoder.finish()?;
+      output.encoder.flush()?;
 
+      // remaining packets from encoder
       loop {
-        packet.reset();
-        match output.encoder.receive_packet(&mut packet) {
+        audio_packet.reset();
+        match output.encoder.receive_packet(&mut audio_packet) {
           Ok(()) => {
-            writer.write_frame(&mut packet)?;
+            writer.write_frame(&mut audio_packet)?;
           }
           Err(AvError::AvLibError(AvLibError::Eof)) => break,
           Err(AvError::IOError(err)) if err.kind() == ErrorKind::WouldBlock => {
@@ -266,15 +293,13 @@ impl SplitTranscoder {
   }
 }
 
-fn find_cover_image_stream(input: &AvInputContext) -> Option<&AVStream> {
+fn find_cover_image_stream(input: &AvContext) -> Option<&AVStream> {
   if let Some(stream) = input.find_best_stream(StreamType::Video) {
-    if let Some(metadata) =
-      unsafe { stream.metadata.as_ref() }.map(|v| AvDictionaryRef::from_ref(v))
-    {
-      if let Some(value) = metadata.get(COVER_IMAGE_KEY) {
-        if value == COVER_IMAGE_VALUE {
-          return Some(stream);
-        }
+    let metadata = AvDictionaryRef::from_ptr_ref(&stream.metadata);
+
+    if let Some(value) = metadata.get(COVER_IMAGE_KEY) {
+      if value == COVER_IMAGE_VALUE {
+        return Some(stream);
       }
     }
   }

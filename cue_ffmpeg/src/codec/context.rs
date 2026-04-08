@@ -60,7 +60,7 @@ impl AvCodecContext {
     unsafe_av_result!(avcodec_send_frame(self.inner, frame.deref()))
   }
 
-  pub fn finish(&mut self) -> Result<(), AvError> {
+  pub fn flush(&mut self) -> Result<(), AvError> {
     unsafe_av_result!(avcodec_send_frame(self.inner, null()))
   }
 

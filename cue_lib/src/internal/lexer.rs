@@ -9,7 +9,7 @@ use crate::{
     cue_str::CueStr,
     error::CueStrError,
     flags::TrackFlag,
-    timestamp::CueTimeStamp,
+    timestamp::CueTimestamp,
     track::{DataType, IndexNo, Track, TrackIndex, TrackNo},
   },
   discid::isrc::Isrc,
@@ -231,7 +231,7 @@ impl<'a> CueLexer<'a> {
 
     let timestamp = {
       let value = self.expect_str()?;
-      CueTimeStamp::from_str(value)
+      CueTimestamp::from_str(value)
         .map_err(|err| ParseError::new_with_position(err.into(), self.position()))?
     };
 
@@ -267,7 +267,7 @@ impl<'a> CueLexer<'a> {
   fn read_postgap(&mut self) -> Result<Command<'a>, ParseError> {
     let timestamp = {
       let value = self.expect_str()?;
-      CueTimeStamp::from_str(value)
+      CueTimestamp::from_str(value)
         .map_err(|err| ParseError::new_with_position(err.into(), self.position()))?
     };
 
@@ -279,7 +279,7 @@ impl<'a> CueLexer<'a> {
   fn read_pregap(&mut self) -> Result<Command<'a>, ParseError> {
     let timestamp = {
       let value = self.expect_str()?;
-      CueTimeStamp::from_str(value)
+      CueTimestamp::from_str(value)
         .map_err(|err| ParseError::new_with_position(err.into(), self.position()))?
     };
 

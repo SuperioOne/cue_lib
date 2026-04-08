@@ -1,9 +1,8 @@
 use self::{error::SplitError, transcode::SplitTranscoder};
-
 use super::Command;
 use cue_ffmpeg::{
+  avlib_version,
   ffmpeg::{LIBAVCODEC_VERSION_MAJOR, LIBAVFORMAT_VERSION_MAJOR},
-  linked_lib_version,
 };
 use cue_lib::parse::{CueSheet, CueSheetParser};
 use std::path::{Path, PathBuf};
@@ -86,7 +85,7 @@ impl<'a> Command for CmdSplit<'a> {
   type Error = SplitError;
 
   fn run(self) -> Result<(), Self::Error> {
-    let av_version = linked_lib_version();
+    let av_version = avlib_version();
 
     if av_version.avformat.major() != LIBAVFORMAT_VERSION_MAJOR as u8
       || av_version.avcodec.major() != LIBAVCODEC_VERSION_MAJOR as u8

@@ -1,9 +1,5 @@
-use super::{
-  MetadataTag,
-  util::{cmp_ignore_ascii_case, impl_metadata_mapping, split_metadata_line},
-};
+use super::{MetadataTag, util::impl_metadata_mapping};
 use crate::{core::cue_str::CueStr, metadata::error::InvalidMetadataTagName};
-use core::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, PartialEq)]
@@ -48,7 +44,7 @@ impl_metadata_mapping!(
     "TMED"                               => Media,
     "TMOO"                               => Mood,
     "TOAL"                               => OriginalAlbum,
-    "TOFN"                               => OriginalFilename,
+    "TOFN"                               => OriginalFileName,
     "TOPE"                               => OriginalArtist,
     "TPE1"                               => Artist,
     "TPE2"                               => AlbumArtist,
@@ -88,24 +84,14 @@ impl_metadata_mapping!(
     "WOAR"                               => Website
 );
 
-impl<'a> Id3Metadata<'a> {
-  pub fn try_from_line(line: &'a str) -> Result<Self, InvalidMetadataTagName> {
-    let (key, value) = split_metadata_line(line)?;
-    let tag = match key {
-      CueStr::Text(v) => Id3Tag::from_str(v),
-      _ => Err(InvalidMetadataTagName),
-    }?;
-
-    Ok(Id3Metadata { value, tag })
-  }
-}
-
 impl TryFrom<MetadataTag> for Id3Tag {
   type Error = InvalidMetadataTagName;
 
   fn try_from(value: MetadataTag) -> Result<Self, Self::Error> {
     match value {
-      MetadataTag::OriginalYear => Err(InvalidMetadataTagName),
+      MetadataTag::OriginalYear | MetadataTag::TotalTracks | MetadataTag::TotalDiscs => {
+        Err(InvalidMetadataTagName)
+      }
       _ => Ok(Id3Tag { inner: value }),
     }
   }

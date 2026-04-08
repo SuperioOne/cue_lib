@@ -1,8 +1,7 @@
-use core::borrow::Borrow;
-
 use super::MetadataTag;
 use crate::core::cue_str::CueStr;
 use alloc::{collections::btree_map::BTreeMap, vec::Vec};
+use core::borrow::Borrow;
 
 #[derive(Debug)]
 pub struct MetadataMap<'a, T>

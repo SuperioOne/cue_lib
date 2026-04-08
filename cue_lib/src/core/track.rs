@@ -1,4 +1,4 @@
-use super::{error::DataTypeParseError, timestamp::CueTimeStamp};
+use super::{error::DataTypeParseError, timestamp::CueTimestamp};
 use crate::internal::{enum_str::impl_enum_str, range::impl_numeric_range_type};
 
 impl_enum_str!(
@@ -38,7 +38,7 @@ impl_numeric_range_type!(TrackNo, u8, max = 255, len = 3, display_leading_zeros 
 #[derive(Clone, Copy, Debug)]
 pub struct TrackIndex {
   pub index_no: IndexNo,
-  pub timestamp: CueTimeStamp,
+  pub timestamp: CueTimestamp,
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]

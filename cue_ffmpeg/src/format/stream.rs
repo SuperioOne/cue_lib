@@ -57,6 +57,7 @@ pub fn copy_stream_properties(src: &AVStream, dst: &mut AVStream) -> Result<(), 
   Ok(())
 }
 
+#[allow(nonstandard_style)]
 impl StreamType {
   pub const fn from_i32(value: i32) -> Self {
     match value {

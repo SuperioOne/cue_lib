@@ -1,6 +1,6 @@
 use super::{
   MetadataTag,
-  util::{cmp_ignore_ascii_case, impl_metadata_mapping, split_metadata_line},
+  util::{impl_metadata_mapping, split_metadata_line},
 };
 use crate::{core::cue_str::CueStr, metadata::error::InvalidMetadataTagName};
 use core::str::FromStr;
@@ -64,7 +64,7 @@ impl_metadata_mapping!(
     "MOVEMENTNAME"                  => Movement,
     "MOVEMENTTOTAL"                 => MovementTotal,
     "ORIGINALDATE"                  => OriginalDate,
-    "ORIGINALFILENAME"              => OriginalFilename,
+    "ORIGINALFILENAME"              => OriginalFileName,
     "ORIGINALYEAR"                  => OriginalYear,
     "PERFORMER"                     => Performer,
     "PRODUCER"                      => Producer,

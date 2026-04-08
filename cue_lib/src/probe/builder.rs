@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
   core::{
-    album_file::AlbumFile, cue_str::CueStr, flags::TrackFlag, timestamp::CueTimeStamp, track::Track,
+    album_file::AlbumFile, cue_str::CueStr, flags::TrackFlag, timestamp::CueTimestamp, track::Track,
   },
   discid::isrc::Isrc,
   error::ParseErrorKind,
@@ -24,11 +24,11 @@ pub struct TrackProbeBuilder<'a> {
   flags: Option<TrackFlag>,
   isrc: Option<Isrc>,
   performer: Option<CueStr<'a>>,
-  postgap: Option<CueTimeStamp>,
-  pregap: Option<CueTimeStamp>,
-  pregap_index: Option<CueTimeStamp>,
+  postgap: Option<CueTimestamp>,
+  pregap: Option<CueTimestamp>,
+  pregap_index: Option<CueTimestamp>,
   songwriter: Option<CueStr<'a>>,
-  start_index: Option<CueTimeStamp>,
+  start_index: Option<CueTimestamp>,
   sub_index_probe: TrackIndexProbe<'a>,
   title: Option<CueStr<'a>>,
   track: Track,
@@ -179,7 +179,7 @@ impl<'a> TrackProbeBuilder<'a> {
   }
 
   #[inline]
-  pub const fn set_postgap(&mut self, postgap: CueTimeStamp) -> Result<(), ParseErrorKind> {
+  pub const fn set_postgap(&mut self, postgap: CueTimestamp) -> Result<(), ParseErrorKind> {
     if self.postgap.is_some() {
       return Err(ParseErrorKind::MultipleCommand);
     }
@@ -189,7 +189,7 @@ impl<'a> TrackProbeBuilder<'a> {
   }
 
   #[inline]
-  pub const fn set_pregap(&mut self, pregap: CueTimeStamp) -> Result<(), ParseErrorKind> {
+  pub const fn set_pregap(&mut self, pregap: CueTimestamp) -> Result<(), ParseErrorKind> {
     if self.pregap.is_some() {
       return Err(ParseErrorKind::MultipleCommand);
     }
@@ -219,7 +219,7 @@ impl<'a> TrackProbeBuilder<'a> {
   }
 
   #[inline]
-  pub const fn set_start_index(&mut self, start_index: CueTimeStamp) -> Result<(), ParseErrorKind> {
+  pub const fn set_start_index(&mut self, start_index: CueTimestamp) -> Result<(), ParseErrorKind> {
     if self.start_index.is_some() {
       return Err(ParseErrorKind::MultipleCommand);
     }
@@ -231,7 +231,7 @@ impl<'a> TrackProbeBuilder<'a> {
   #[inline]
   pub const fn set_pregap_index(
     &mut self,
-    pregap_index: CueTimeStamp,
+    pregap_index: CueTimestamp,
   ) -> Result<(), ParseErrorKind> {
     // Pregap index (INDEX 00) must be set before the start index (INDEX 01)
     if self.start_index.is_some() {
