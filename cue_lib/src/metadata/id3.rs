@@ -84,19 +84,6 @@ impl_metadata_mapping!(
     "WOAR"                               => Website
 );
 
-impl TryFrom<MetadataTag> for Id3Tag {
-  type Error = InvalidMetadataTagName;
-
-  fn try_from(value: MetadataTag) -> Result<Self, Self::Error> {
-    match value {
-      MetadataTag::OriginalYear | MetadataTag::TotalTracks | MetadataTag::TotalDiscs => {
-        Err(InvalidMetadataTagName)
-      }
-      _ => Ok(Id3Tag { inner: value }),
-    }
-  }
-}
-
 #[cfg(test)]
 mod test {
   use crate::metadata::id3::LOOKUP_TABLE;

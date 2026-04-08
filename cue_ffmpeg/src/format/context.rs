@@ -8,8 +8,8 @@ use crate::{
   },
 };
 use cue_ffmpeg_sys::{
-  AVFormatContext, AVSEEK_FLAG_BACKWARD, AVStream, av_dict_copy, av_find_best_stream,
-  av_seek_frame, avformat_new_stream,
+  AVFormatContext, AVSEEK_FLAG_BACKWARD, AVStream, av_find_best_stream, av_seek_frame,
+  avformat_new_stream,
 };
 use std::{
   ops::{Deref, DerefMut},
@@ -118,14 +118,6 @@ impl AvContext {
 
   pub fn metadata_mut(&mut self) -> AvDictionaryMut<'_> {
     AvDictionaryMut::from_ptr_ref(&mut unsafe { &mut *self.inner }.metadata)
-  }
-
-  pub fn copy_metadata_to(&self, dest: &mut AvContext) -> Result<(), AvError> {
-    if self.metadata.is_null() {
-      Err(AvError::UninitializedDictionary)
-    } else {
-      unsafe_av_result!(av_dict_copy(&mut dest.metadata, self.metadata, 0))
-    }
   }
 
   #[inline]

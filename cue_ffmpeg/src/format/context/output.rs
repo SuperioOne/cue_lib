@@ -2,8 +2,8 @@ use super::AvContext;
 use crate::{codec::packet::AvPacket, common::unsafe_av_result, error::AvError};
 use cue_ffmpeg_sys::{
   AVFMT_NOFILE, AVFormatContext, AVIO_FLAG_WRITE, av_dump_format, av_interleaved_write_frame,
-  av_write_frame, av_write_trailer, avformat_alloc_output_context2, avformat_free_context,
-  avformat_write_header, avio_closep, avio_open,
+  av_write_trailer, avformat_alloc_output_context2, avformat_free_context, avformat_write_header,
+  avio_closep, avio_open,
 };
 use std::{
   ffi::CString,

@@ -1,4 +1,4 @@
-use crate::{common::unsafe_av_result, error::AvError, ts_as_option, util::timestamp::AvTimestamp};
+use crate::{common::unsafe_av_result, error::AvError};
 use cue_ffmpeg_sys::{
   AVPacket, AVRational, av_packet_alloc, av_packet_clone, av_packet_free, av_packet_ref,
   av_packet_rescale_ts, av_packet_unref,

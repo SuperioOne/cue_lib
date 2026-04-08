@@ -229,7 +229,7 @@ impl<'a> Tracks<'a> {
         .build(track_buf)
         .map_err(|kind| ParseError::new_with_position(kind, self.lexer.position()))?;
 
-      return Ok(Some(probe));
+      Ok(Some(probe))
     } else {
       Ok(None)
     }

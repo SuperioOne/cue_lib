@@ -101,23 +101,20 @@ impl<'a> MetadataContainer<'a> {
       MetadataTag::OriginalFileName,
       cuesheet.file.map(|v| v.name.as_cow_str()),
     );
-
     self.insert_optional(MetadataTag::Album, cuesheet.title.map(|v| v.as_cow_str()));
-
     self.insert_optional(
       MetadataTag::AlbumArtist,
       cuesheet.performer.map(|v| v.as_cow_str()),
     );
-
     self.insert_optional(
       MetadataTag::CatalogNumber,
       cuesheet.catalog.map(|v| v.as_cow_str()),
     );
-
     self.insert_optional(
       MetadataTag::Writer,
       cuesheet.songwriter.map(|v| v.as_cow_str()),
     );
+    self.insert(MetadataTag::TotalTracks, cuesheet.tracks.len().to_string());
   }
 
   pub fn insert_from_track(&mut self, cuesheet: &'a TrackInfo<'a>) {
@@ -128,17 +125,14 @@ impl<'a> MetadataContainer<'a> {
     }
 
     self.insert_optional(MetadataTag::Title, cuesheet.title.map(|v| v.as_cow_str()));
-
     self.insert_optional(
       MetadataTag::Artist,
       cuesheet.performer.map(|v| v.as_cow_str()),
     );
-
     self.insert_optional(
       MetadataTag::Writer,
       cuesheet.songwriter.map(|v| v.as_cow_str()),
     );
-
     self.insert_optional(MetadataTag::Isrc, cuesheet.isrc.map(|v| v.to_string()));
     self.override_entry(MetadataTag::TrackNumber, cuesheet.track_no.to_string());
   }

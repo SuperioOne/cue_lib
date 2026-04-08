@@ -148,6 +148,19 @@ macro_rules! impl_metadata_mapping {
       }
     }
 
+    impl TryFrom<MetadataTag> for $type_name {
+      type Error = $crate::metadata::error::InvalidMetadataTagName;
+
+      fn try_from(value: MetadataTag) -> Result<Self, Self::Error> {
+        match value {
+          $(
+            $crate::metadata::MetadataTag::$value => Ok($type_name { inner: value}),
+          )+
+          _ => Err(InvalidMetadataTagName)
+        }
+      }
+    }
+
     impl core::str::FromStr for $type_name {
       type Err = $crate::metadata::error::InvalidMetadataTagName;
 

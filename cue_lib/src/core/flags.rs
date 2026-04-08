@@ -19,7 +19,7 @@ impl core::str::FromStr for TrackFlag {
   type Err = FlagParseError;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    const TABLE: [(&'static str, TrackFlag); 4] = [
+    const TABLE: [(&str, TrackFlag); 4] = [
       ("DCP", TrackFlag::DCP),
       ("4CH", TrackFlag::FOUR_CHANNEL),
       ("SCMS", TrackFlag::SCMS),

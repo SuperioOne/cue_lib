@@ -38,37 +38,6 @@ impl_metadata_mapping!(
        "track"         => TrackNumber
 );
 
-impl TryFrom<MetadataTag> for AvLibTag {
-  type Error = InvalidMetadataTagName;
-
-  fn try_from(value: MetadataTag) -> Result<Self, Self::Error> {
-    match value {
-      MetadataTag::Album
-      | MetadataTag::AlbumSort
-      | MetadataTag::AlbumArtist
-      | MetadataTag::Artist
-      | MetadataTag::ArtistSort
-      | MetadataTag::Compilation
-      | MetadataTag::Composer
-      | MetadataTag::Copyright
-      | MetadataTag::Date
-      | MetadataTag::DiscNumber
-      | MetadataTag::EncodedBy
-      | MetadataTag::EncoderSettings
-      | MetadataTag::Genre
-      | MetadataTag::Grouping
-      | MetadataTag::Language
-      | MetadataTag::Lyrics
-      | MetadataTag::Performer
-      | MetadataTag::Label
-      | MetadataTag::Title
-      | MetadataTag::TitleSort
-      | MetadataTag::TrackNumber => Ok(AvLibTag { inner: value }),
-      _ => Err(InvalidMetadataTagName),
-    }
-  }
-}
-
 #[cfg(test)]
 mod test {
   use crate::metadata::avlib::LOOKUP_TABLE;

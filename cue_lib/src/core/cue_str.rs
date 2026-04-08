@@ -105,7 +105,7 @@ impl PartialEq<str> for CueStr<'_> {
             }
           }
 
-          return true;
+          true
         } else {
           debug_assert!(
             false,

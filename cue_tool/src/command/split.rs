@@ -1,4 +1,4 @@
-use self::{error::SplitError, transcode::SplitTranscoder};
+use self::{demux::SplitDemuxer, error::SplitError};
 use super::Command;
 use cue_ffmpeg::{
   avlib_version,
@@ -8,8 +8,9 @@ use cue_lib::parse::{CueSheet, CueSheetParser};
 use std::path::{Path, PathBuf};
 
 pub mod error;
+
+mod demux;
 mod metadata;
-mod transcode;
 
 pub struct CmdSplit<'a> {
   cuesheet: &'a str,
@@ -105,6 +106,6 @@ impl<'a> Command for CmdSplit<'a> {
       PathBuf::from(".")
     };
 
-    SplitTranscoder::init(input_path, output_dir, &cuesheet)?.split()
+    SplitDemuxer::init(input_path, output_dir, &cuesheet)?.split()
   }
 }

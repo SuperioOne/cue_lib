@@ -104,17 +104,6 @@ impl<'a> VorbisComment<'a> {
   }
 }
 
-impl TryFrom<MetadataTag> for VorbisTag {
-  type Error = InvalidMetadataTagName;
-
-  fn try_from(value: MetadataTag) -> Result<Self, Self::Error> {
-    match value {
-      MetadataTag::OriginalAlbum | MetadataTag::OriginalArtist => Err(InvalidMetadataTagName),
-      _ => Ok(VorbisTag { inner: value }),
-    }
-  }
-}
-
 #[cfg(test)]
 mod test {
   use crate::metadata::vorbis::LOOKUP_TABLE;

@@ -89,7 +89,7 @@ macro_rules! impl_numeric_range_type {
           let digit = remaining / base;
           remaining -= digit * base;
           digits[i] = (digit as u8);
-          base = base / 10;
+          base /= 10;
         }
 
         unsafe { $crate::core::digit::Digits::new_unchecked(&digits) }

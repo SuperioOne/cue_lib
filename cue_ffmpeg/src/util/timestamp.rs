@@ -22,6 +22,11 @@ pub enum Rounding {
   PassMinMax,
 }
 
+/// Wrapper struct to make pts/dts operations a little bit more fail-safe at the expense of carrying
+/// around additional 8-byte timebase info.
+///
+/// It can be safely used for comparing/manipulating timestamps with different timebases,
+/// as it automatically rescales the right hand side operand to the left hand side's timebase.
 #[derive(Copy, Clone, Debug)]
 pub struct AvTimestamp {
   timestamp: i64,
@@ -69,7 +74,7 @@ impl AvTimestamp {
     }
   }
 
-  // Rescale timestamp with the new time base
+  /// Rescale timestamp with the new time base
   pub fn rescale(self, target_time_base: AVRational) -> Self {
     let timestamp = unsafe { av_rescale_q(self.timestamp, self.time_base, target_time_base) };
 
@@ -79,7 +84,7 @@ impl AvTimestamp {
     }
   }
 
-  // Rescale timestamp with the new time base and custom rounding
+  /// Rescale timestamp with the new time base and custom rounding
   pub fn rescale_rounding(self, target_time_base: AVRational, rounding: Rounding) -> Self {
     let timestamp = unsafe {
       av_rescale_q_rnd(

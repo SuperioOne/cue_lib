@@ -29,7 +29,7 @@ impl<'a> Command for &'a CmdQuery<'a> {
 
   #[inline]
   fn run(self) -> Result<(), cue_lib::error::CueLibError> {
-    let cuesheet = CueSheetParser::new()
+    let _cuesheet = CueSheetParser::new()
       .allow_vorbis_remarks(self.vorbis_remarks)
       .parse(self.cuesheet)?;
 

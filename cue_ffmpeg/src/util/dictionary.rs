@@ -14,6 +14,7 @@ pub struct AvDictionaryRef<'a> {
   inner: &'a *mut AVDictionary,
 }
 
+// NOTE: Indirection is required to initialize empty dictionary (null pointer)
 pub struct AvDictionaryMut<'a> {
   inner: &'a mut *mut AVDictionary,
 }

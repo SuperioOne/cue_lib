@@ -1,7 +1,7 @@
-use crate::{common::unsafe_av_result, error::AvError, ts_as_option, util::timestamp::AvTimestamp};
+use crate::{common::unsafe_av_result, error::AvError};
 use cue_ffmpeg_sys::{
-  AVChannelLayout, AVFrame, AVRational, av_channel_layout_copy, av_frame_alloc, av_frame_clone,
-  av_frame_free, av_frame_get_buffer, av_frame_ref, av_frame_unref,
+  AVChannelLayout, AVFrame, av_channel_layout_copy, av_frame_alloc, av_frame_clone, av_frame_free,
+  av_frame_get_buffer, av_frame_ref, av_frame_unref,
 };
 use std::ops::{Deref, DerefMut};
 

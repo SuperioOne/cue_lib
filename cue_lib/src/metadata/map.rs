@@ -36,19 +36,6 @@ where
     }
   }
 
-  pub fn from_iter<I>(metadata_iter: I) -> Self
-  where
-    I: Iterator<Item = (T, CueStr<'a>)> + 'a,
-  {
-    let mut map = Self::new();
-
-    for metadata in metadata_iter {
-      _ = map.insert(metadata.0, metadata.1)
-    }
-
-    map
-  }
-
   pub fn get<K>(&self, key: K) -> Option<&[CueStr<'a>]>
   where
     K: Borrow<MetadataTag>,
@@ -130,6 +117,21 @@ where
   #[inline]
   pub fn clear(&mut self) {
     self.inner.clear();
+  }
+}
+
+impl<'a, T> FromIterator<(T, CueStr<'a>)> for MetadataMap<'a, T>
+where
+  T: Borrow<MetadataTag> + Ord + Clone + 'a,
+{
+  fn from_iter<I: IntoIterator<Item = (T, CueStr<'a>)>>(iter: I) -> Self {
+    let mut map = Self::new();
+
+    for metadata in iter {
+      _ = map.insert(metadata.0, metadata.1)
+    }
+
+    map
   }
 }
 

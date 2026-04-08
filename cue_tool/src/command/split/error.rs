@@ -30,7 +30,7 @@ impl ErrorFormat for SplitError {
         Self::IOError(error) => std::fmt::Display::fmt(&error, f),
         Self::UnsupportedAvLibVersion => f.write_str("linked avlib version on system is not supported"),
         Self::NothingToSplit => f.write_str("cuesheet has only one or none track, nothing to split."),
-        Self::AvError(err) => f.write_fmt(format_args!("{:?}", err)),
+        Self::AvError(error) => std::fmt::Display::fmt(&error, f),
         Self::UnknownAudioContainer => f.write_str("unable to detect audio codec"),
         Self::InvalidFilePath(path) => f.write_fmt(format_args!("invalid file path: {:?}", path)),
         Self::InvalidOutputDir(path) => f.write_fmt(format_args!("invalid output directory: {:?}", path)),

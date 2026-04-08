@@ -1,4 +1,5 @@
 #![allow(nonstandard_style)]
+use std::fmt::Display;
 use std::os::raw::c_int;
 
 macro_rules! mktag {
@@ -81,12 +82,10 @@ impl_av_errors!(
 
 #[derive(Debug)]
 pub enum AvError {
-  UninitializedDictionary,
-  InvalidFrameSize,
   AllocationError,
+  AvLibError(AvLibError),
   DumpError,
   IOError(std::io::Error),
-  AvLibError(AvLibError),
 }
 
 impl From<std::io::Error> for AvError {
@@ -115,7 +114,7 @@ impl AvError {
     if code > -1 {
       Ok(())
     } else {
-      // NOTE: Yes, code sign is inverted on purpose. See POSIX errors.
+      // NOTE: Yes, code sign is inverted on purpose to match with POSIX errors.
       match -code {
         BsfNotFound => Err(AvLibError::BsfNotFound.into()),
         Bug => Err(AvLibError::Bug.into()),
@@ -147,6 +146,52 @@ impl AvError {
         HttpServerError => Err(AvLibError::HttpServerError.into()),
         value => Err(AvError::IOError(std::io::Error::from_raw_os_error(value))),
       }
+    }
+  }
+}
+
+impl Display for AvError {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::AllocationError => f.write_str("memory allocation failed by avlib"),
+      Self::AvLibError(av_lib_error) => av_lib_error.fmt(f),
+      Self::DumpError => f.write_str("media file info dump failed"),
+      Self::IOError(error) => error.fmt(f),
+    }
+  }
+}
+
+impl Display for AvLibError {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::BsfNotFound => f.write_str("bsf not found"),
+      Self::Bug => f.write_str("internal bug"),
+      Self::BufferTooSmall => f.write_str("buffer too small"),
+      Self::DecoderNotFound => f.write_str("decoder not found"),
+      Self::DemuxerNotFound => f.write_str("demuxer not found"),
+      Self::EncoderNotFound => f.write_str("encoder not found"),
+      Self::Eof => f.write_str("end of file"),
+      Self::Exit => f.write_str("exit was requested"),
+      Self::External => f.write_str("external library error"),
+      Self::FilterNotFound => f.write_str("filter not found"),
+      Self::InvalidData => f.write_str("invalid data found when processing input"),
+      Self::MuxerNotFound => f.write_str("muxer not found"),
+      Self::OptionNotFound => f.write_str("option not found"),
+      Self::PatchWelcome => f.write_str("not yet implemented in ffmpeg, patches welcome"),
+      Self::ProtocolNotFound => f.write_str("protocol not found"),
+      Self::StreamNotFound => f.write_str("stream not found"),
+      Self::Bug2 => f.write_str("internal bug (bug2)"),
+      Self::Unknown => f.write_str("unknown error"),
+      Self::Experimental => f.write_str("requested feature is flagged experimental"),
+      Self::InputChanged => f.write_str("input changed between calls"),
+      Self::OutputChanged => f.write_str("output changed between calls"),
+      Self::HttpBadRequest => f.write_str("http bad request"),
+      Self::HttpUnauthorized => f.write_str("http unauthorized"),
+      Self::HttpForbidden => f.write_str("http forbidden"),
+      Self::HttpNotFound => f.write_str("http not found"),
+      Self::HttpTooManyRequests => f.write_str("http too many requests"),
+      Self::HttpOther4xx => f.write_str("http 4xx error"),
+      Self::HttpServerError => f.write_str("http server error"),
     }
   }
 }

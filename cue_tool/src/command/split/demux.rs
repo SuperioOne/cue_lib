@@ -36,13 +36,13 @@ macro_rules! static_cstr {
 
 const COVER_IMAGE_KEY: &'static CStr = static_cstr!("comment");
 const COVER_IMAGE_VALUE: &'static CStr = static_cstr!("Cover (front)");
-const UNTITLED_TRACK: CueStr<'static> = CueStr::Text("untitled");
 const EXT_FLAC: &'static str = "flac";
 const EXT_MP3: &'static str = "mp3";
+const UNTITLED_TRACK: CueStr<'static> = CueStr::Text("untitled");
 
-static VORBIS_TAGGER: VorbisTagger = VorbisTagger;
-static ID3_TAGGER: Id3Tagger = Id3Tagger;
 static AV_LIB_TAGGER: AvLibTagger = AvLibTagger;
+static ID3_TAGGER: Id3Tagger = Id3Tagger;
+static VORBIS_TAGGER: VorbisTagger = VorbisTagger;
 
 struct SplitOutput {
   start_time: AvTimestamp,
@@ -52,12 +52,12 @@ struct SplitOutput {
   samples: AudioFifo,
 }
 
-pub struct SplitTranscoder {
+pub struct SplitDemuxer {
   outputs: Vec<SplitOutput>,
   cover_image_packets: Vec<AvPacket>,
 }
 
-impl SplitTranscoder {
+impl SplitDemuxer {
   pub fn init<I, O>(
     input_path: I,
     output_dir: O,
@@ -94,6 +94,7 @@ impl SplitTranscoder {
       })?;
 
     let audio_codec = unsafe { &*audio_stream.codecpar };
+
     let (file_extension, tagger) = match audio_codec.codec_id {
       AVCodecID_AV_CODEC_ID_MP3 | AVCodecID_AV_CODEC_ID_MP3ADU | AVCodecID_AV_CODEC_ID_MP3ON4 => {
         (EXT_MP3, &ID3_TAGGER as &dyn CodecMetadataTagger)
@@ -111,6 +112,8 @@ impl SplitTranscoder {
     let mut decoder = AvCodecContext::new_decoder(audio_codec.codec_id);
     decoder.copy_params_from(audio_codec)?;
     decoder.pkt_timebase = audio_stream.time_base;
+    decoder.time_base.den = audio_codec.sample_rate;
+    decoder.time_base.num = 1;
     decoder.open()?;
 
     let input_cover_stream = find_cover_image_stream(&input);
