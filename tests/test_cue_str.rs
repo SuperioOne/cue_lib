@@ -1,10 +1,10 @@
-use cue_lib::core::{cue_str::CueStr, error::CueStrErrorKind};
+use cue_lib::core::{CueStr, error::CueStrErrorKind};
 
 macro_rules! test_cue_str {
   ($test_name:ident, $str:literal, expects = $cmp:expr) => {
     #[test]
     fn $test_name() {
-      match CueStr::from_raw_str($str) {
+      match CueStr::try_from_raw_str($str) {
         Ok(cue_str) => {
           assert_eq!(cue_str, $cmp);
           assert_eq!(cue_str.to_string(), $cmp);
@@ -17,7 +17,7 @@ macro_rules! test_cue_str {
   ($test_name:ident, $str:literal, expects_err = $err:expr) => {
     #[test]
     fn $test_name() {
-      match CueStr::from_raw_str($str) {
+      match CueStr::try_from_raw_str($str) {
         Ok(_) => {
           assert!(false, "CueStr should've failed.")
         }
@@ -29,56 +29,57 @@ macro_rules! test_cue_str {
 
 #[test]
 fn eq_empty_str() {
-  let cuestr = CueStr::from_raw_str("");
+  let cuestr = CueStr::try_from_raw_str("");
   assert!(cuestr.is_ok());
   assert_eq!(cuestr.unwrap(), "");
 }
 
 #[test]
 fn eq_quoted_empty_str() {
-  let cuestr = CueStr::from_raw_str("\"\"");
+  let cuestr = CueStr::try_from_raw_str("\"\"");
   assert!(cuestr.is_ok());
   assert_eq!(cuestr.unwrap(), "");
 }
 
 #[test]
 fn eq_str() {
-  let cuestr = CueStr::from_raw_str("HelloDarkness,MyOldFriend");
+  let cuestr = CueStr::try_from_raw_str("HelloDarkness,MyOldFriend");
   assert!(cuestr.is_ok());
   assert_eq!(cuestr.unwrap(), "HelloDarkness,MyOldFriend");
 }
 
 #[test]
 fn eq_quoted_str() {
-  let cuestr = CueStr::from_raw_str("\" I've come to talk with you again. \"");
+  let cuestr = CueStr::try_from_raw_str("\" I've come to talk with you again. \"");
   assert!(cuestr.is_ok());
   assert_eq!(cuestr.unwrap(), " I've come to talk with you again. ");
 }
 
 #[test]
 fn eq_escaped_quoted_str() {
-  let cuestr = CueStr::from_raw_str("\"\\\"Because\\\" a vision softly creeping\"");
+  let cuestr = CueStr::try_from_raw_str("\"\\\"Because\\\" a vision softly creeping\"");
   assert!(cuestr.is_ok());
   assert_eq!(cuestr.unwrap(), "\"Because\" a vision softly creeping");
 }
 
 #[test]
 fn not_eq_str() {
-  let cuestr = CueStr::from_raw_str("NeverGonnaGiveYouUP");
+  let cuestr = CueStr::try_from_raw_str("NeverGonnaGiveYouUP");
   assert!(cuestr.is_ok());
   assert_ne!(cuestr.unwrap(), "NeverGonnaGiveYou");
 }
 
 #[test]
 fn not_eq_quoted_str() {
-  let cuestr = CueStr::from_raw_str("\"Never gonna let you down\"");
+  let cuestr = CueStr::try_from_raw_str("\"Never gonna let you down\"");
   assert!(cuestr.is_ok());
   assert_ne!(cuestr.unwrap(), "Never GONNA LET YOU DOWN");
 }
 
 #[test]
 fn not_eq_escaped_quoted_str() {
-  let cuestr = CueStr::from_raw_str("\"Never gonna \\\\run\\\\ \\\"around\\\" and desert you\"");
+  let cuestr =
+    CueStr::try_from_raw_str("\"Never gonna \\\\run\\\\ \\\"around\\\" and desert you\"");
   assert!(cuestr.is_ok());
   assert_ne!(cuestr.unwrap(), "Never gonna \\run\\ around and desert you");
 }
@@ -86,7 +87,7 @@ fn not_eq_escaped_quoted_str() {
 #[cfg(feature = "alloc")]
 #[test]
 fn as_cow_escaped() {
-  let cuestr = CueStr::from_raw_str("\"Never gonna \\\\make\\\\ \\\"you\\\" cry\"");
+  let cuestr = CueStr::try_from_raw_str("\"Never gonna \\\\make\\\\ \\\"you\\\" cry\"");
   assert!(cuestr.is_ok());
   assert_eq!(
     cuestr.unwrap().as_cow_str(),
@@ -97,7 +98,7 @@ fn as_cow_escaped() {
 #[cfg(feature = "alloc")]
 #[test]
 fn as_cow_quoted() {
-  let cuestr = CueStr::from_raw_str("\"Never gonna say goodbye\"");
+  let cuestr = CueStr::try_from_raw_str("\"Never gonna say goodbye\"");
 
   assert!(cuestr.is_ok());
   assert_eq!(cuestr.unwrap().as_cow_str(), "Never gonna say goodbye");

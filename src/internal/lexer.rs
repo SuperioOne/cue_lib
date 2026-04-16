@@ -4,13 +4,8 @@ use super::{
 };
 use crate::{
   core::{
-    album_file::{AlbumFile, KnownFileType},
-    command::Command,
-    cue_str::CueStr,
-    error::CueStrError,
-    flags::TrackFlag,
-    timestamp::CueTimestamp,
-    track::{DataType, IndexNo, Track, TrackIndex, TrackNo},
+    AlbumFile, Command, CueStr, CueTimestamp, DataType, IndexNo, KnownFileType, Track, TrackFlag,
+    TrackIndex, TrackNo, error::CueStrError,
   },
   discid::isrc::Isrc,
   error::{ParseError, ParseErrorKind},
@@ -334,7 +329,7 @@ impl<'a> CueLexer<'a> {
     self.expect_line_end()?;
 
     let value = Track {
-      track_no,
+      no: track_no,
       data_type,
     };
 

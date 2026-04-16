@@ -1,3 +1,9 @@
+#[cfg(feature = "ean")]
+pub use ean_error::*;
+
+#[cfg(feature = "upc")]
+pub use upc_error::*;
+
 /// Represents an error when parsing an ISRC string.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IsrcParseError {
@@ -51,96 +57,102 @@ impl core::fmt::Display for IsrcParseError {
 
 impl core::error::Error for IsrcParseError {}
 
-/// Represents an error when parsing an EAN string.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct EanParseError {
-  kind: EanParseErrorKind,
-}
-
-impl EanParseError {
-  #[inline]
-  pub const fn new(kind: EanParseErrorKind) -> Self {
-    Self { kind }
+#[cfg(feature = "ean")]
+mod ean_error {
+  /// Represents an error when parsing an EAN string.
+  #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+  pub struct EanParseError {
+    kind: EanParseErrorKind,
   }
 
-  #[inline]
-  pub const fn kind(&self) -> EanParseErrorKind {
-    self.kind
-  }
-}
+  impl EanParseError {
+    #[inline]
+    pub const fn new(kind: EanParseErrorKind) -> Self {
+      Self { kind }
+    }
 
-/// Kinds of errors that can occur while parsing an EAN string.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum EanParseErrorKind {
-  /// The EAN string contains an invalid character.
-  InvalidCharacter,
-  /// The EAN string has an invalid length.
-  InvalidLength,
-  /// The EAN string failed checksum validation.
-  ChecksumFail,
-}
-
-impl core::fmt::Display for EanParseErrorKind {
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    match self {
-      EanParseErrorKind::InvalidCharacter => f.write_str("EAN string contains invalid character"),
-      EanParseErrorKind::InvalidLength => f.write_str("EAN string has invalid length"),
-      EanParseErrorKind::ChecksumFail => f.write_str("EAN string failed checksum validation"),
+    #[inline]
+    pub const fn kind(&self) -> EanParseErrorKind {
+      self.kind
     }
   }
-}
 
-impl core::fmt::Display for EanParseError {
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    f.write_fmt(format_args!("invalid EAN string: {}", self.kind))
-  }
-}
-
-impl core::error::Error for EanParseError {}
-
-/// Represents an error when parsing a UPC string.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct UpcParseError {
-  kind: UpcParseErrorKind,
-}
-
-impl UpcParseError {
-  #[inline]
-  pub const fn new(kind: UpcParseErrorKind) -> Self {
-    Self { kind }
+  /// Kinds of errors that can occur while parsing an EAN string.
+  #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+  pub enum EanParseErrorKind {
+    /// The EAN string contains an invalid character.
+    InvalidCharacter,
+    /// The EAN string has an invalid length.
+    InvalidLength,
+    /// The EAN string failed checksum validation.
+    ChecksumFail,
   }
 
-  #[inline]
-  pub const fn kind(&self) -> UpcParseErrorKind {
-    self.kind
-  }
-}
-
-/// Kinds of errors that can occur while parsing a UPC string.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum UpcParseErrorKind {
-  /// The UPC string contains an invalid character.
-  InvalidCharacter,
-  /// The UPC string has an invalid length.
-  InvalidLength,
-  /// The UPC string failed checksum validation.
-  ChecksumFail,
-}
-
-impl core::fmt::Display for UpcParseErrorKind {
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    match self {
-      UpcParseErrorKind::InvalidCharacter => f.write_str("UPC string contains invalid character"),
-      UpcParseErrorKind::InvalidLength => f.write_str("UPC string has invalid length"),
-      UpcParseErrorKind::ChecksumFail => f.write_str("UPC string failed checksum validation"),
+  impl core::fmt::Display for EanParseErrorKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+      match self {
+        EanParseErrorKind::InvalidCharacter => f.write_str("EAN string contains invalid character"),
+        EanParseErrorKind::InvalidLength => f.write_str("EAN string has invalid length"),
+        EanParseErrorKind::ChecksumFail => f.write_str("EAN string failed checksum validation"),
+      }
     }
   }
-}
 
-impl core::fmt::Display for UpcParseError {
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    f.write_fmt(format_args!("invalid UPC string: {}", self.kind))
+  impl core::fmt::Display for EanParseError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+      f.write_fmt(format_args!("invalid EAN string: {}", self.kind))
+    }
   }
+
+  impl core::error::Error for EanParseError {}
 }
 
-impl core::error::Error for UpcParseError {}
+#[cfg(feature = "upc")]
+mod upc_error {
+  /// Represents an error when parsing a UPC string.
+  #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+  pub struct UpcParseError {
+    kind: UpcParseErrorKind,
+  }
+
+  impl UpcParseError {
+    #[inline]
+    pub const fn new(kind: UpcParseErrorKind) -> Self {
+      Self { kind }
+    }
+
+    #[inline]
+    pub const fn kind(&self) -> UpcParseErrorKind {
+      self.kind
+    }
+  }
+
+  /// Kinds of errors that can occur while parsing a UPC string.
+  #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+  pub enum UpcParseErrorKind {
+    /// The UPC string contains an invalid character.
+    InvalidCharacter,
+    /// The UPC string has an invalid length.
+    InvalidLength,
+    /// The UPC string failed checksum validation.
+    ChecksumFail,
+  }
+
+  impl core::fmt::Display for UpcParseErrorKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+      match self {
+        UpcParseErrorKind::InvalidCharacter => f.write_str("UPC string contains invalid character"),
+        UpcParseErrorKind::InvalidLength => f.write_str("UPC string has invalid length"),
+        UpcParseErrorKind::ChecksumFail => f.write_str("UPC string failed checksum validation"),
+      }
+    }
+  }
+
+  impl core::fmt::Display for UpcParseError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+      f.write_fmt(format_args!("invalid UPC string: {}", self.kind))
+    }
+  }
+
+  impl core::error::Error for UpcParseError {}
+}

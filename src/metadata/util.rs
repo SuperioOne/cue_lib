@@ -1,6 +1,6 @@
 use super::error::InvalidMetadataTagName;
 use crate::{
-  core::cue_str::CueStr,
+  core::CueStr,
   internal::tokenizer::{Token, Tokenizer},
 };
 use core::cmp::Ordering;
@@ -179,6 +179,11 @@ macro_rules! impl_metadata_mapping {
       }
     }
 
+    impl core::fmt::Display for $type_name {
+      fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.as_ref())
+      }
+    }
   };
 }
 

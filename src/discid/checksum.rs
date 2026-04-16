@@ -1,4 +1,4 @@
-use crate::core::digit::Digits;
+use crate::core::Digits;
 
 const EAN_13_WEIGHTS: [u8; 12] = [1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3];
 const UPC_A_WEIGHTS: [u8; 11] = [3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3];

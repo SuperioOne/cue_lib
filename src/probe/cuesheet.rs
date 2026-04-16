@@ -4,11 +4,12 @@ use super::{
   track::{TrackListProbe, Tracks},
 };
 use crate::{
-  core::{album_file::AlbumFile, command::Command, cue_str::CueStr},
+  core::{AlbumFile, Command, CueStr},
   error::{CueLibError, ParseError, ParseErrorKind},
   internal::{lexer::CueLexer, tokenizer::Tokenizer},
 };
 
+/// Cue sheet prober
 pub struct CuesheetProbe<'a> {
   /// Catalog number for the release (CATALOG command)
   pub(super) catalog: Option<CueStr<'a>>,
@@ -36,6 +37,7 @@ pub struct CuesheetProbe<'a> {
 }
 
 impl<'a> CuesheetProbe<'a> {
+  /// Creates new cue sheet probe
   pub fn new(cuesheet: &'a str) -> Result<Self, CueLibError> {
     let tokenizer = Tokenizer::new(cuesheet);
     let mut lexer = CueLexer::new(tokenizer);
@@ -78,18 +80,11 @@ impl<'a> CuesheetProbe<'a> {
     let probe = CuesheetProbe::new(cuesheet)?;
     let mut tracks = probe.tracks();
 
-    'EXHAUST_TRACKS: loop {
-      match tracks.next_track()? {
-        Some(track) => {
-          let mut indexes = track.sub_indexes();
+    while let Some(track) = tracks.next_track()? {
+      let mut indexes = track.sub_indexes();
 
-          'EXHAUST_INDEXES: loop {
-            if let None = indexes.next_index()? {
-              break 'EXHAUST_INDEXES;
-            }
-          }
-        }
-        None => break 'EXHAUST_TRACKS,
+      while let Some(_) = indexes.next_index()? {
+        continue;
       }
     }
 
@@ -138,13 +133,19 @@ impl<'a> CuesheetProbe<'a> {
     self.tracks_probe.iter()
   }
 
-  /// Returns an iterator over the remarks in the album portion of the cuesheet.
+  /// Returns an iterator over the remarks on the album portion of the cuesheet.
   #[inline]
   pub const fn remarks(&self) -> RemarkIter<'a> {
     RemarkIter::new(self.album_buffer)
   }
 
   /// Returns an iterator over the vorbis metadata remarks in the album portion of the cuesheet.
+  ///
+  /// <div class="warning">
+  ///
+  /// Requires **metadata** feature
+  ///
+  /// </div>
   #[cfg(feature = "metadata")]
   #[inline]
   pub fn vorbis_comments(&self) -> crate::probe::vorbis_remark::VorbisRemarkIter<'a> {

@@ -252,8 +252,8 @@ impl Isrc {
     let mut value = [0u8; 12];
     (&mut value[0..2]).copy_from_slice(self.country.as_bytes());
     (&mut value[2..5]).copy_from_slice(self.owner.as_bytes());
-    (&mut value[5..7]).copy_from_slice(self.year.as_ascii_bytes().as_slice());
-    (&mut value[7..]).copy_from_slice(self.serial.as_ascii_bytes().as_slice());
+    (&mut value[5..7]).copy_from_slice(&self.year.as_digits().as_ascii_bytes());
+    (&mut value[7..]).copy_from_slice(&self.serial.as_digits().as_ascii_bytes());
 
     value
   }

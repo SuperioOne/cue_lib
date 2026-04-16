@@ -75,12 +75,7 @@ macro_rules! impl_numeric_range_type {
         }
       }
 
-      #[inline]
-      pub fn as_ascii_bytes(&self) -> [u8; $len] {
-        self.as_digits().as_ascii_bytes()
-      }
-
-      pub fn as_digits(&self) -> $crate::core::digit::Digits<$len> {
+      pub fn as_digits(&self) -> $crate::core::Digits<$len> {
         let mut digits = [0_u8; $len];
         let mut base = (10 as $inner_type).pow($len - 1);
         let mut remaining = self.0;
@@ -92,7 +87,7 @@ macro_rules! impl_numeric_range_type {
           base /= 10;
         }
 
-        unsafe { $crate::core::digit::Digits::new_unchecked(&digits) }
+        unsafe { $crate::core::Digits::new_unchecked(&digits) }
       }
     }
 

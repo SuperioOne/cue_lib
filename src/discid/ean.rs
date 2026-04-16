@@ -2,48 +2,61 @@ use super::{
   checksum::calc_ean_13_checksum,
   error::{EanParseError, EanParseErrorKind},
 };
-use crate::core::digit::Digits;
+use crate::core::Digits;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Ean13 {
-  code: Digits<12>,
-  checksum: u8,
+  value: Digits<13>,
 }
 
 impl Ean13 {
   pub fn new(code: Digits<12>) -> Self {
     let checksum = calc_ean_13_checksum(&code);
-    Self { code, checksum }
+    let mut value = [0u8; 13];
+
+    (&mut value[..12]).copy_from_slice(code.as_bytes());
+    value[12] = checksum;
+
+    Self {
+      value: unsafe { Digits::new_unchecked(&value) },
+    }
   }
 
+  #[inline]
   pub fn as_ascii_bytes(&self) -> [u8; 13] {
-    let mut value = [0u8; 13];
-    (&mut value[0..12]).copy_from_slice(&self.code.as_ascii_bytes());
-    value[12] = self.checksum + b'0';
-
-    value
-  }
-
-  pub fn as_bytes(&self) -> [u8; 13] {
-    let mut value = [0u8; 13];
-    (&mut value[0..12]).copy_from_slice(self.code.as_bytes());
-    value[12] = self.checksum;
-
-    value
+    self.value.as_ascii_bytes()
   }
 
   #[inline]
-  pub fn gs1(&self) -> &[u8; 3] {
-    self.code.as_bytes()[..3]
-      .try_into()
-      .expect("gs1 never panics")
+  pub const fn as_bytes(&self) -> &[u8; 13] {
+    self.value.as_bytes()
   }
 
   #[inline]
-  pub fn code(&self) -> &[u8; 9] {
-    self.code.as_bytes()[3..]
-      .try_into()
-      .expect("variable code never panics")
+  pub fn gs1(&self) -> Digits<3> {
+    unsafe {
+      Digits::new_unchecked(
+        self.value.as_bytes()[..3]
+          .try_into()
+          .expect("gs1 never panics"),
+      )
+    }
+  }
+
+  #[inline]
+  pub fn checksum(&self) -> u8 {
+    self.value[12]
+  }
+
+  #[inline]
+  pub fn code(&self) -> Digits<9> {
+    unsafe {
+      Digits::new_unchecked(
+        self.value.as_bytes()[3..]
+          .try_into()
+          .expect("variable code never panics"),
+      )
+    }
   }
 }
 
@@ -55,15 +68,17 @@ impl core::str::FromStr for Ean13 {
       return Err(EanParseError::new(EanParseErrorKind::InvalidLength));
     }
 
-    let code = Digits::<12>::from_str(&s[..12])
+    let value = Digits::<12>::from_str(&s[..12])
       .map_err(|_| EanParseError::new(EanParseErrorKind::InvalidCharacter))?;
     let checksum = match s.as_bytes().last() {
       Some(value @ b'0'..=b'9') => Ok(value - b'0'),
       _ => Err(EanParseError::new(EanParseErrorKind::InvalidCharacter)),
     }?;
 
-    if calc_ean_13_checksum(&code) == checksum {
-      Ok(Self { code, checksum })
+    let ean_code = Ean13::new(value);
+
+    if ean_code.checksum() == checksum {
+      Ok(ean_code)
     } else {
       Err(EanParseError::new(EanParseErrorKind::ChecksumFail))
     }
@@ -79,8 +94,9 @@ impl core::fmt::Display for Ean13 {
 }
 
 impl Ord for Ean13 {
+  #[inline]
   fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-    self.code.cmp(&other.code)
+    self.value.cmp(&other.value)
   }
 }
 

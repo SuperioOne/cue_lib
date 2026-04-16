@@ -2,53 +2,54 @@ use super::{
   checksum::calc_upc_a_checksum,
   error::{UpcParseError, UpcParseErrorKind},
 };
-use crate::core::digit::Digits;
+use crate::core::Digits;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UpcA {
-  code: Digits<11>,
-  checksum: u8,
+  value: Digits<12>,
 }
 
 impl UpcA {
   pub fn new(code: Digits<11>) -> Self {
     let checksum = calc_upc_a_checksum(&code);
-    Self { code, checksum }
+    let mut value = [0u8; 12];
+
+    (&mut value[..11]).copy_from_slice(code.as_bytes());
+    value[11] = checksum;
+
+    Self {
+      value: unsafe { Digits::new_unchecked(&value) },
+    }
   }
 
+  #[inline]
   pub fn as_ascii_bytes(&self) -> [u8; 12] {
-    let mut value = [0u8; 12];
-    (&mut value[0..11]).copy_from_slice(&self.code.as_ascii_bytes());
-    value[11] = self.checksum + b'0';
-
-    value
+    self.value.as_ascii_bytes()
   }
 
-  pub fn as_bytes(&self) -> [u8; 12] {
-    let mut value = [0u8; 12];
-    (&mut value[0..11]).copy_from_slice(self.code.as_bytes());
-    value[11] = self.checksum;
-
-    value
+  #[inline]
+  pub const fn as_bytes(&self) -> &[u8; 12] {
+    self.value.as_bytes()
   }
 
   #[inline]
   pub fn digit_system(&self) -> u8 {
-    self.code.as_bytes()[0]
+    self.value[0]
   }
 
   #[inline]
-  pub fn left_part(&self) -> &[u8; 5] {
-    self.code.as_bytes()[1..6]
-      .try_into()
-      .expect("LLLLL part never panics")
+  pub fn checksum(&self) -> u8 {
+    self.value[11]
   }
 
   #[inline]
-  pub fn right_part(&self) -> &[u8; 5] {
-    self.code.as_bytes()[6..11]
-      .try_into()
-      .expect("RRRRR part never panics")
+  pub fn left_part(&self) -> Digits<5> {
+    unsafe { Digits::new_unchecked(&self.value[1..6]) }
+  }
+
+  #[inline]
+  pub fn right_part(&self) -> Digits<5> {
+    unsafe { Digits::new_unchecked(&self.value[6..11]) }
   }
 }
 
@@ -60,15 +61,17 @@ impl core::str::FromStr for UpcA {
       return Err(UpcParseError::new(UpcParseErrorKind::InvalidLength));
     }
 
-    let code = Digits::<11>::from_str(&s[..11])
+    let value = Digits::<11>::from_str(&s[..11])
       .map_err(|_| UpcParseError::new(UpcParseErrorKind::InvalidCharacter))?;
     let checksum = match s.as_bytes().last() {
       Some(value @ b'0'..=b'9') => Ok(value - b'0'),
       _ => Err(UpcParseError::new(UpcParseErrorKind::InvalidCharacter)),
     }?;
 
-    if calc_upc_a_checksum(&code) == checksum {
-      Ok(Self { code, checksum })
+    let upc = UpcA::new(value);
+
+    if upc.checksum() == checksum {
+      Ok(upc)
     } else {
       Err(UpcParseError::new(UpcParseErrorKind::ChecksumFail))
     }
@@ -85,7 +88,7 @@ impl core::fmt::Display for UpcA {
 
 impl Ord for UpcA {
   fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-    self.code.cmp(&other.code)
+    self.value.cmp(&other.value)
   }
 }
 

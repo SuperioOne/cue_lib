@@ -1,12 +1,5 @@
 use super::{MetadataTag, util::impl_metadata_mapping};
-use crate::{core::cue_str::CueStr, metadata::error::InvalidMetadataTagName};
-
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Debug, PartialEq)]
-pub struct Id3Metadata<'a> {
-  pub tag: Id3Tag,
-  pub value: CueStr<'a>,
-}
+use crate::metadata::error::InvalidMetadataTagName;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Id3Tag {

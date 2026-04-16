@@ -1,4 +1,4 @@
-use super::{error::DataTypeParseError, timestamp::CueTimestamp};
+use super::error::DataTypeParseError;
 use crate::internal::{enum_str::impl_enum_str, range::impl_numeric_range_type};
 
 impl_enum_str!(
@@ -25,25 +25,16 @@ impl_enum_str!(
   ]
 );
 
+/// Track no between 0 and 255
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct TrackNo(u8);
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-pub struct IndexNo(u8);
-
-impl_numeric_range_type!(IndexNo, u8, max = 255, len = 3, display_leading_zeros = 2);
 impl_numeric_range_type!(TrackNo, u8, max = 255, len = 3, display_leading_zeros = 2);
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Clone, Copy, Debug)]
-pub struct TrackIndex {
-  pub no: IndexNo,
-  pub timestamp: CueTimestamp,
-}
-
+/// Cue sheet track data
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct Track {
-  pub track_no: TrackNo,
+  pub no: TrackNo,
   pub data_type: DataType,
 }

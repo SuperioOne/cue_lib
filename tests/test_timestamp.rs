@@ -1,7 +1,4 @@
-use cue_lib::core::{
-  error::TimestampParseErrorKind,
-  timestamp::{CueTimestamp, Frame, Second},
-};
+use cue_lib::core::{CueTimestamp, Frame, Second, error::TimestampParseErrorKind};
 use std::str::FromStr;
 
 macro_rules! test_timestamp {

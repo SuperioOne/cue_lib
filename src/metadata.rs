@@ -5,17 +5,23 @@ mod util;
 #[cfg(feature = "alloc")]
 pub mod map;
 
+/// FFmpeg's internal metadata mappings
 pub mod avlib;
+/// Metadata related errors
 pub mod error;
+/// ID3 metadata mappings
 pub mod id3;
+/// Vorbis comment tags
 pub mod vorbis;
 
 use core::borrow::Borrow;
 
+/// A common trait to get metadata tag name
 pub trait Metadata: Borrow<MetadataTag> + Borrow<str> + Ord + Clone + TryFrom<MetadataTag> {
   fn as_str(&self) -> &'static str;
 }
 
+/// General purpose metadata tag type
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 pub enum MetadataTag {
   AcoustidFingerprint,

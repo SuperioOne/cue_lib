@@ -1,12 +1,10 @@
 use super::{
-  album_file::AlbumFile,
-  cue_str::CueStr,
-  flags::TrackFlag,
-  timestamp::CueTimestamp,
-  track::{Track, TrackIndex},
+  album_file::AlbumFile, cue_str::CueStr, flags::TrackFlag, index::TrackIndex,
+  timestamp::CueTimestamp, track::Track,
 };
 use crate::discid::isrc::Isrc;
 
+/// Definitions of cue sheet command types and their structures
 pub enum Command<'a> {
   /// Disc's media catalog number (MCN)
   Catalog { value: CueStr<'a> },

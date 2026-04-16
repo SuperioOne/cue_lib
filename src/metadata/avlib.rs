@@ -1,12 +1,5 @@
 use super::{MetadataTag, util::impl_metadata_mapping};
-use crate::{core::cue_str::CueStr, metadata::error::InvalidMetadataTagName};
-
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Debug, PartialEq)]
-pub struct AvLibMetadata<'a> {
-  pub tag: AvLibTag,
-  pub value: CueStr<'a>,
-}
+use crate::metadata::error::InvalidMetadataTagName;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct AvLibTag {

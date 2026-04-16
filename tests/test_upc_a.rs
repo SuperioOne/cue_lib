@@ -1,4 +1,6 @@
-use cue_lib::{core::digit::Digits, discid::error::UpcParseErrorKind, discid::upc::UpcA};
+#![cfg(feature = "upc")]
+
+use cue_lib::{core::Digits, discid::error::UpcParseErrorKind, discid::upc::UpcA};
 use std::str::FromStr;
 
 macro_rules! test_upc_a {
@@ -8,10 +10,10 @@ macro_rules! test_upc_a {
       match UpcA::from_str($digits) {
         Ok(upca) => {
           let digits = Digits::from_str(&$digits).unwrap();
-          assert_eq!(upca.left_part(), &digits.as_bytes()[1..6]);
-          assert_eq!(upca.right_part(), &digits.as_bytes()[6..11]);
-          assert_eq!(upca.digit_system(), *digits.get(0).unwrap());
-          assert_eq!(&upca.as_bytes(), digits.as_bytes());
+          assert_eq!(upca.left_part().as_bytes(), &digits[1..6]);
+          assert_eq!(upca.right_part().as_bytes(), &digits[6..11]);
+          assert_eq!(upca.digit_system(), digits[0]);
+          assert_eq!(&upca.as_bytes(), &digits.as_bytes());
           assert_eq!(&upca.to_string(), $digits);
           assert_eq!(&upca.as_ascii_bytes(), $digits.as_bytes());
         }

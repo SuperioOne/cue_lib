@@ -2,8 +2,9 @@ use super::{
   album_file::KnownFileType,
   cue_str::CueStr,
   flags::TrackFlag,
+  index::IndexNo,
   timestamp::CueTimestamp,
-  track::{DataType, IndexNo, TrackNo},
+  track::{DataType, TrackNo},
 };
 use serde::Serialize;
 

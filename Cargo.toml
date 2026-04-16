@@ -14,6 +14,8 @@ repository = "https://github.com/SuperioOne/cue_rs"
 default = []
 alloc = ["serde?/alloc"]
 metadata = []
+ean = []
+upc = []
 serde = ["dep:serde"]
 
 [dependencies]

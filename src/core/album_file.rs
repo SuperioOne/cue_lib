@@ -26,6 +26,7 @@ impl_enum_str!(
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug)]
+/// Data structure representing cue sheet file information and metadata
 pub struct AlbumFile<'a> {
   pub file_type: KnownFileType,
   pub name: CueStr<'a>,

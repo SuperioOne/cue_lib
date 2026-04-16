@@ -18,7 +18,7 @@ impl<'a> Iterator for RemarkIter<'a> {
   fn next(&mut self) -> Option<Self::Item> {
     loop {
       match self.lexer.next_command() {
-        Ok(Some(crate::core::command::Command::Remark { value })) => {
+        Ok(Some(crate::core::Command::Remark { value })) => {
           return Some(value);
         }
         Ok(None) => return None,

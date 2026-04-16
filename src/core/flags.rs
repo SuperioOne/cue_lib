@@ -2,6 +2,7 @@ use super::error::FlagParseError;
 use crate::internal::bitflag::define_bitflag;
 
 define_bitflag!(
+  /// Implementation of the cue sheet FLAG command specifications
   pub TrackFlag u8,
   values = [
     /// Digital copy permitted
@@ -47,6 +48,17 @@ impl TrackFlag {
     }
   }
 
+  /// Iterates over flags names
+  ///
+  /// ```
+  /// use cue_lib::core::TrackFlag;
+  ///
+  /// let flags = TrackFlag::DCP | TrackFlag::SCMS;
+  ///
+  /// for flag_name in flags.iter() {
+  ///   println!("{}", flag_name)
+  /// }
+  /// ```
   pub const fn iter(&self) -> TrackFlagNameIter {
     TrackFlagNameIter {
       inner: *self,

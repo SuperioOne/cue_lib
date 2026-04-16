@@ -1,12 +1,6 @@
 use super::remark::RemarkIter;
 use crate::{
-  core::{
-    command::Command,
-    cue_str::CueStr,
-    flags::TrackFlag,
-    timestamp::CueTimestamp,
-    track::{DataType, Track, TrackIndex, TrackNo},
-  },
+  core::{Command, CueStr, CueTimestamp, DataType, Track, TrackFlag, TrackIndex, TrackNo},
   discid::isrc::Isrc,
   error::{CueLibError, ParseError, ParseErrorKind},
   internal::lexer::CueLexer,
@@ -14,16 +8,17 @@ use crate::{
 };
 
 #[derive(Clone)]
-pub struct TrackListProbe<'a> {
+pub(super) struct TrackListProbe<'a> {
   lexer: CueLexer<'a>,
   initial_track: Track,
 }
 
 #[derive(Clone)]
-pub struct TrackIndexProbe<'a> {
+pub(super) struct TrackIndexProbe<'a> {
   lexer: CueLexer<'a>,
 }
 
+/// Probe for a track portion of the cue sheet
 #[derive(Clone)]
 pub struct TrackProbe<'a> {
   /// Track number and basic track information
@@ -63,87 +58,154 @@ pub struct TrackProbe<'a> {
   pub(super) track_buffer: &'a str,
 }
 
+/// Iterator like structure to loop over tracks
+///
+/// ```
+/// use cue_lib::probe::CuesheetProbe;
+/// use cue_lib::error::CueLibError;
+///
+/// fn iterate_tracks(probe: &CuesheetProbe) -> Result<(), CueLibError> {
+///   let mut track_iter = probe.tracks();
+///
+///   // each next_track call parses next track block on the cuesheet, so it might fail
+///   while let Some(track) = track_iter.next_track()? {
+///       println!("Track no: {}", track.track_no());
+///   }
+///
+///   Ok(())
+/// }
+/// ```
 pub struct Tracks<'a> {
   lexer: CueLexer<'a>,
   track: Option<Track>,
 }
 
+/// Iterator like structure to loop over **sub-indexes** (INDEX 02,03 etc)
+///
+/// ```
+/// use cue_lib::probe::track::TrackProbe;
+/// use cue_lib::error::CueLibError;
+///
+/// fn iterate_indexes(track: &TrackProbe) -> Result<(), CueLibError> {
+///   let mut sub_indexes = track.sub_indexes();
+///
+///   while let Some(index) = sub_indexes.next_index()? {
+///       println!("Index no: {} at {}", index.no, index.timestamp);
+///   }
+///
+///   Ok(())
+/// }
+/// ```
 pub struct TrackSubIndexes<'a> {
   lexer: CueLexer<'a>,
   prev_index: Option<TrackIndex>,
 }
 
 impl<'a> TrackProbe<'a> {
-  #[inline]
-  pub const fn track_info(&self) -> &Track {
-    &self.track
-  }
-
+  /// Returns track data type
   #[inline]
   pub const fn track_data_type(&self) -> DataType {
     self.track.data_type
   }
 
+  /// Returns track no
   #[inline]
   pub const fn track_no(&self) -> TrackNo {
-    self.track.track_no
+    self.track.no
   }
 
+  /// Returns track ISRC if present.
   #[inline]
   pub const fn isrc(&self) -> Option<Isrc> {
     self.isrc
   }
 
+  /// Returns value of FLAGS if present.
   #[inline]
   pub const fn flags(&self) -> Option<TrackFlag> {
     self.flags
   }
 
+  /// Returns **duration** of POSTGAP if present.
+  ///
+  /// ## Reminder
+  ///
+  /// POSTGAP specifies silence should be added after playing the track. It's not part of
+  /// the actual media file data.
   #[inline]
   pub const fn postgap(&self) -> Option<CueTimestamp> {
     self.postgap
   }
 
+  /// Returns **duration** of PREGAP if present.
+  ///
+  /// ## Reminder
+  ///
+  /// PREGAP specifies silence should be added before playing the track. It's not part of
+  /// the actual media file data.
   #[inline]
   pub const fn pregap(&self) -> Option<CueTimestamp> {
     self.pregap
   }
 
+  /// Returns track's PERFORMER if present
   #[inline]
   pub const fn performer(&self) -> Option<CueStr<'a>> {
     self.performer
   }
 
+  /// Returns track's SONGWRITER if present
   #[inline]
   pub const fn songwriter(&self) -> Option<CueStr<'a>> {
     self.songwriter
   }
 
+  /// Returns track's TITLE if present
   #[inline]
   pub const fn title(&self) -> Option<CueStr<'a>> {
     self.title
   }
 
+  /// Returns sub-index iterator for the track
   #[inline]
   pub const fn sub_indexes(&self) -> TrackSubIndexes<'a> {
     self.sub_index_probe.iter()
   }
 
+  /// Returns INDEX 01 timestamp
+  ///
+  /// ## Important
+  ///
+  /// INDEX 01 is the actual track start.
   #[inline]
   pub const fn start_index(&self) -> CueTimestamp {
     self.start_index
   }
 
+  /// Returns INDEX 00 timestamp if present.
+  ///
+  /// ## Important
+  ///
+  /// INDEX 00 specifies the starting time of the track **pregap**. Unlike PREGAP command, it's
+  /// physically present on the media file data.
   #[inline]
   pub const fn pregap_index(&self) -> Option<CueTimestamp> {
     self.pregap_index
   }
 
+  /// Returns an iterator over the remarks in the album portion of the cuesheet.
   #[inline]
   pub fn remarks(&self) -> RemarkIter<'a> {
     RemarkIter::new(self.track_buffer)
   }
 
+  /// Returns an iterator over the vorbis metadata remarks on the track portion of the cuesheet.
+  ///
+  /// <div class="warning">
+  ///
+  /// Requires **metadata** feature
+  ///
+  /// </div>
   #[cfg(feature = "metadata")]
   #[inline]
   pub fn vorbis_comments(&self) -> crate::probe::vorbis_remark::VorbisRemarkIter<'a> {
@@ -206,7 +268,7 @@ impl<'a> Tracks<'a> {
           Some(Command::Title { value }) => builder.set_title(value),
           Some(Command::Track { value }) => {
             // Track no's must be sequential
-            if curr_track.track_no.saturating_add(1) == value.track_no {
+            if curr_track.no.saturating_add(1) == value.no {
               self.track = Some(value);
               break 'PARSER;
             } else {

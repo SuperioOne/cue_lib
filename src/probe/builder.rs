@@ -3,9 +3,7 @@ use super::{
   track::{TrackIndexProbe, TrackListProbe, TrackProbe},
 };
 use crate::{
-  core::{
-    album_file::AlbumFile, cue_str::CueStr, flags::TrackFlag, timestamp::CueTimestamp, track::Track,
-  },
+  core::{AlbumFile, CueStr, CueTimestamp, Track, TrackFlag},
   discid::isrc::Isrc,
   error::ParseErrorKind,
 };

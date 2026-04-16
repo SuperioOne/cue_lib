@@ -11,13 +11,15 @@ const FRAME: u128 = 1000 / 75;
 pub struct Second(u8);
 
 /// Value between 0 and 74.
-/// For conversion: 75 frames are 1 second.
+///
+/// For conversion, 75 frames are equal to 1 second.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Frame(u8);
 
 impl_numeric_range_type!(Second, u8, max = 59, len = 2, display_leading_zeros = 2);
 impl_numeric_range_type!(Frame, u8, max = 74, len = 2, display_leading_zeros = 2);
 
+/// Timestamps in `mm:ss:ff` format (minutes, seconds, frames)
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Default)]
 pub struct CueTimestamp {
   minute: u64,

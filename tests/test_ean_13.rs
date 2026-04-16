@@ -1,4 +1,6 @@
-use cue_lib::{core::digit::Digits, discid::ean::Ean13, discid::error::EanParseErrorKind};
+#![cfg(feature = "ean")]
+
+use cue_lib::{core::Digits, discid::ean::Ean13, discid::error::EanParseErrorKind};
 use std::str::FromStr;
 
 macro_rules! test_ean_13 {
@@ -8,9 +10,9 @@ macro_rules! test_ean_13 {
       match Ean13::from_str($digits) {
         Ok(ean) => {
           let digits = Digits::from_str(&$digits).unwrap();
-          assert_eq!(ean.gs1(), &digits.as_bytes()[0..3]);
-          assert_eq!(ean.code(), &digits.as_bytes()[3..12]);
-          assert_eq!(&ean.as_bytes(), digits.as_bytes());
+          assert_eq!(ean.gs1().as_bytes(), &digits.as_bytes()[0..3]);
+          assert_eq!(ean.code().as_bytes(), &digits.as_bytes()[3..12]);
+          assert_eq!(ean.as_bytes(), digits.as_bytes());
           assert_eq!(&ean.to_string(), $digits);
           assert_eq!(&ean.as_ascii_bytes(), $digits.as_bytes());
         }

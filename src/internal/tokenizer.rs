@@ -1,5 +1,5 @@
 use crate::core::{
-  cue_str::CueStr,
+  CueStr,
   error::{CueStrError, CueStrErrorKind},
 };
 

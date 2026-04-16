@@ -1,8 +1,12 @@
 macro_rules! define_bitflag {
-  ($access_level:vis $name:ident $inner_type:ty, values = [$(
+  (
+  $(#[$top_level_docs:meta])*
+  $access_level:vis $name:ident $inner_type:ty, values = [$(
     $(#[$docs:meta])*
     ($const_name:ident, $flag_value:expr)
   ),+]) => {
+
+    $(#[$top_level_docs])*
     #[derive(Debug, PartialEq, Eq, Clone, Copy)]
     $access_level struct $name($inner_type);
 
@@ -17,44 +21,54 @@ macro_rules! define_bitflag {
     impl $name {
       $(
         $(#[$docs])*
-        const $const_name: Self = Self($flag_value);
+        pub const $const_name: Self = Self($flag_value);
       )+
 
+
+      /// Returns the internal value of the flag container
       #[inline]
       pub const fn into_inner(&self) -> $inner_type {
         self.0
       }
 
+      /// Checks if all specified bit flags are set in the current instance
       #[inline]
       pub const fn has(&self, rhs: Self) -> bool {
         (self.0 & rhs.0) == rhs.0
       }
 
+      /// Sets specified bit flags
       #[inline]
       pub const fn set(self, value: Self) -> Self {
         Self(self.0 | value.0)
       }
 
+      /// Unsets specified bit flags
       #[inline]
       pub const fn unset(self, value: Self) -> Self {
         Self(self.0 & (!value.0))
       }
 
+
+      /// Sets specified bit flags in the current instance
       #[inline]
       pub const fn set_assign(&mut self, value: Self) {
         self.0  |= value.0;
       }
 
+      /// Unsets specified bit flags in the current instance
       #[inline]
       pub const fn unset_assign(&mut self, value: Self)  {
         self.0 &= !value.0
       }
 
+      /// Returns the number of set bit flags in the current instance
       #[inline]
       pub const fn len(&self) -> u32 {
         self.0.count_ones()
       }
 
+      /// Checks if no bit flags are set in the current instance
       #[inline]
       pub const fn is_empty(&self) -> bool {
         self.0 == 0

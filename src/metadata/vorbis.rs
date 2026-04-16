@@ -2,7 +2,7 @@ use super::{
   MetadataTag,
   util::{impl_metadata_mapping, split_metadata_line},
 };
-use crate::{core::cue_str::CueStr, metadata::error::InvalidMetadataTagName};
+use crate::{core::CueStr, metadata::error::InvalidMetadataTagName};
 use core::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]

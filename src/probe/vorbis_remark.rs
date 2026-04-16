@@ -1,6 +1,8 @@
 use super::remark::RemarkIter;
-use crate::core::cue_str::CueStr;
-use crate::metadata::vorbis::{VorbisComment, VorbisTag};
+use crate::{
+  core::CueStr,
+  metadata::vorbis::{VorbisComment, VorbisTag},
+};
 
 pub struct VorbisRemarkIter<'a> {
   inner: RemarkIter<'a>,

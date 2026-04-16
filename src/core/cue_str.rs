@@ -1,10 +1,49 @@
 use crate::core::error::{CueStrError, CueStrErrorKind};
 use core::ffi::CStr;
 
+/// Cue sheet specific string
+///
+/// This structure does not own the data, it simply a [str] reference wrapper with some additional
+/// information about escape characters and quotation marks.
+///
+/// ## Logic operations
+/// [CueStr] can be directly compared with other [str] references. It automatically handles
+/// escape characters and quotations marks without any extra allocation.
+///
+/// ```
+/// use cue_lib::core::CueStr;
+/// use std::borrow::Cow;
+///
+/// // Cue sheet form      -> "Hello \"world\""
+/// // Human readable form -> Hello "world"
+/// let cue_str = CueStr::try_from_raw_str(r#""Hello \"world\"""#).unwrap();
+/// assert_eq!(r#"Hello "world""#, cue_str);
+/// ```
+/// ## Using as str
+///
+/// [CueStr] does not provide [`AsRef<str>`](AsRef) because it can contain escape sequences and
+/// this might require additional memory allocation, which must be handled explicitly by the user.
+///
+/// - Use [`as_cow_str`](CueStr::as_cow_str) to convert [CueStr] into `Cow<'_, str>`, which avoids
+/// additional allocation when [CueStr] does not contain escape characters.
+/// - Use `to_string` to convert [CueStr] into `String`, duplicating string in memory
+/// regardless of whether it contains escape characters or not.
+/// - Match [CueStr] (it's an enum) and sanitize the inner [str] with custom logic.
+///
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum CueStr<'a> {
+  /// Text surrounded by quotation marks
+  /// ## example:
+  /// - `"Multiple words"`
+  /// - `"WrappedWithQuotationMarks"`
   QuotedText(&'a str),
+  /// Text surrounded by quotation marks and escape sequences
+  /// ## example:
+  /// - `"Never \"gonna\" \\ give you up"`
   QuotedTextWithEscape(&'a str),
+  /// A regular text without whitespaces, escape sequences, and quotation marks
+  /// ## example:
+  /// - `NeverGonnaLetYouDown`
   Text(&'a str),
 }
 
@@ -16,7 +55,12 @@ macro_rules! inner_text {
 }
 
 impl<'a> CueStr<'a> {
-  pub fn from_raw_str(s: &'a str) -> Result<Self, CueStrError> {
+  /// Tries to convert [str] into [CueStr]. Returns [CueStrError] if [str] is not a valid cue
+  /// sheet string.
+  ///
+  /// ## Remark
+  /// [`TryFrom<&str>`](TryFrom) trait implementation also internally calls this function.
+  pub fn try_from_raw_str(s: &'a str) -> Result<Self, CueStrError> {
     if s.len() > 1 && s.starts_with('"') {
       if s.ends_with('"') && !s.ends_with("\\\"") {
         let text = inner_text!(s);
@@ -58,13 +102,12 @@ impl<'a> CueStr<'a> {
     }
   }
 
-  #[inline]
-  /// Returns un-escaped/quoted raw str reference.
-  pub const fn as_raw_str(&self) -> &str {
+  ///
+  pub const fn into_inner(self) -> &'a str {
     match self {
-      Self::QuotedText(v) => v,
-      Self::QuotedTextWithEscape(v) => v,
-      Self::Text(v) => v,
+      CueStr::QuotedText(v) => v,
+      CueStr::QuotedTextWithEscape(v) => v,
+      CueStr::Text(v) => v,
     }
   }
 }
@@ -125,12 +168,26 @@ impl PartialEq<&str> for CueStr<'_> {
   }
 }
 
+impl<'a> PartialEq<CueStr<'a>> for str {
+  #[inline]
+  fn eq(&self, other: &CueStr<'a>) -> bool {
+    other.eq(self)
+  }
+}
+
+impl<'a> PartialEq<CueStr<'a>> for &str {
+  #[inline]
+  fn eq(&self, other: &CueStr<'a>) -> bool {
+    other.eq(self)
+  }
+}
+
 impl<'a> TryFrom<&'a str> for CueStr<'a> {
   type Error = CueStrError;
 
   #[inline]
   fn try_from(value: &'a str) -> Result<Self, Self::Error> {
-    Self::from_raw_str(value)
+    Self::try_from_raw_str(value)
   }
 }
 
@@ -140,7 +197,7 @@ impl<'a> TryFrom<&'a CStr> for CueStr<'a> {
   #[inline]
   fn try_from(value: &'a CStr) -> Result<Self, Self::Error> {
     match value.to_str() {
-      Ok(v) => CueStr::from_raw_str(v),
+      Ok(v) => CueStr::try_from_raw_str(v),
       Err(_) => Err(CueStrErrorKind::InvalidUtf8.into()),
     }
   }
@@ -180,6 +237,29 @@ mod alloc {
   use alloc::{borrow::Cow, string::ToString};
 
   impl<'a> CueStr<'a> {
+    /// <div class="warning">
+    ///
+    /// Requires **alloc** feature
+    ///
+    /// </div>
+    ///
+    /// Converts [CueStr] into [`Cow<'_, str>`](Cow), which strips quotation marks and escapes charcaters if necessary.
+    ///
+    /// ## Remark
+    ///
+    /// [CueStr] also implements [Into] trait for [Cow], which calls [as_cow_str](CueStr::as_cow_str) under the
+    /// hood.
+    ///
+    /// ```
+    /// use cue_lib::core::CueStr;
+    /// use std::borrow::Cow;
+    ///
+    /// let cue_str = CueStr::try_from_raw_str("\"Hello \\\"world\\\"\"").unwrap();
+    /// let text: Cow<'_, str> =  cue_str.into();
+    ///
+    /// assert_eq!(text, "Hello \"world\"");
+    /// ```
+
     pub fn as_cow_str(&self) -> Cow<'a, str> {
       match self {
         CueStr::QuotedText(v) => Cow::Borrowed(inner_text!(v)),
