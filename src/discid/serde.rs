@@ -1,7 +1,6 @@
-use super::{ean::Ean13, isrc::Isrc, upc::UpcA};
 use serde::Serialize;
 
-impl Serialize for Isrc {
+impl Serialize for super::isrc::Isrc {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
     S: serde::Serializer,
@@ -12,7 +11,8 @@ impl Serialize for Isrc {
   }
 }
 
-impl Serialize for Ean13 {
+#[cfg(feature = "ean")]
+impl Serialize for super::ean::Ean13 {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
     S: serde::Serializer,
@@ -23,7 +23,8 @@ impl Serialize for Ean13 {
   }
 }
 
-impl Serialize for UpcA {
+#[cfg(feature = "upc")]
+impl Serialize for super::upc::UpcA {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
     S: serde::Serializer,
