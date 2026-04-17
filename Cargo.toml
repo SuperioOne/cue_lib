@@ -9,6 +9,7 @@ authors = ["Timur Olur <pm@smdd.dev>"]
 documentation = "https://codeberg.org/SuperiorOne/cue_lib"
 homepage = "https://codeberg.org/SuperiorOne/cue_lib"
 repository = "https://codeberg.org/SuperiorOne/cue_lib"
+exclude = ["/.gitea", "rustfmt.toml"]
 
 [features]
 default = []
@@ -22,3 +23,6 @@ serde = ["dep:serde"]
 serde = { version = "1", default-features = false, optional = true, features = [
         "derive",
 ] }
+
+[package.metadata.docs.rs]
+all-features = true

@@ -1,0 +1,23 @@
+name: test
+on:
+  push:
+jobs:
+  test:
+    defaults:
+      run:
+        shell: bash
+    runs-on: akashi
+    container:
+      image: gitea-service:80/actions/arch-action-runner-full:latest
+      credentials:
+        username: ${{secrets.ACTION_USER}}
+        password: ${{secrets.ACTION_TOKEN}}
+    steps:
+      - uses: http://gitea-service/actions/checkout@v4
+        with:
+          show-progress: false
+      - name: Setup rustup targets
+        run: |
+          rustup default stable
+      - name: Run tests
+        run: cargo test --all-features

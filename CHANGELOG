@@ -1,0 +1,13 @@
+# v0.1.0 - April 17, 2026
+
+Initial release
+
+## Added
+
+- Cue sheet prober with no_std support
+- Cue sheet parser for more simple usage
+- Metadata mapping with libav for audio file processing
+- Vorbis metadata support
+- Serde support for cue data structures
+- Track segment time and duration calculations based on index commands
+- Inline documentation and basic examples
