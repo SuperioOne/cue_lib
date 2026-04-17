@@ -6,9 +6,9 @@ license = "Apache-2.0"
 version = "0.1.0"
 edition = "2024"
 authors = ["Timur Olur <pm@smdd.dev>"]
-documentation = "https://github.com/SuperioOne/cue_rs"
-homepage = "https://github.com/SuperioOne/cue_rs"
-repository = "https://github.com/SuperioOne/cue_rs"
+documentation = "https://codeberg.org/SuperiorOne/cue_lib"
+homepage = "https://codeberg.org/SuperiorOne/cue_lib"
+repository = "https://codeberg.org/SuperiorOne/cue_lib"
 
 [features]
 default = []
