@@ -32,7 +32,7 @@ jobs:
       - name: Generate release body from changelog
         run: >
           VERSION="$(cargo metadata --no-deps --offline --format-version 1 | jq -r '.packages[] | select(.name == "cue_lib") | .version')";
-          cat ./changelog | awk -v version="^# v${version}" '$0 ~ version {start=1;next}/^# v.*$/{start=0}start' > release_body.txt;
+          cat ./CHANGELOG | awk -v version="^# v${version}" '$0 ~ version {start=1;next}/^# v.*$/{start=0}start' > release_body.txt;
           cat ./release_body.txt;
       - name: Crete new release on local
         uses: http://gitea-service/actions/gitea-release-action@main
